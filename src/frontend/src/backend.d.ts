@@ -25,6 +25,7 @@ export interface Event {
     id: bigint;
     eventStyle: EventStyle;
     owner: Principal;
+    date: Time;
     createdAt: Time;
     contact_number: string;
     locationType: LocationType;
@@ -92,7 +93,8 @@ export enum Variant_busy_available {
 export interface backendInterface {
     addPortfolioImage(filename: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    createEvent(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle, contact_number: string): Promise<bigint>;
+    createBooking(eventId: bigint, organizerId: Principal): Promise<bigint>;
+    createEvent(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle, contact_number: string, date: Time): Promise<bigint>;
     deletePortfolioImage(filename: string): Promise<boolean>;
     filterOrganizers(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle): Promise<Array<OrganizerProfile>>;
     getAllBookings(): Promise<Array<Booking>>;

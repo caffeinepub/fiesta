@@ -12,9 +12,19 @@ export default function CreateEventForm() {
   const [numberOfGuests, setNumberOfGuests] = useState('');
   const [eventStyle, setEventStyle] = useState<EventStyle>(EventStyle.family);
   const [contactNumber, setContactNumber] = useState('');
+  const [eventDate, setEventDate] = useState('');
   const [error, setError] = useState('');
 
   const createEvent = useCreateEvent();
+
+  // Get today's date in YYYY-MM-DD format for min attribute
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,16 +41,38 @@ export default function CreateEventForm() {
       return;
     }
 
+    if (!eventDate) {
+      setError('Please select an event date');
+      return;
+    }
+
+    // Validate that the date is not in the past
+    const selectedDate = new Date(eventDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      setError('Cannot create events in the past. Please select today or a future date.');
+      return;
+    }
+
     try {
+      // Convert date to timestamp (nanoseconds)
+      const dateTimestamp = BigInt(selectedDate.getTime() * 1000000);
+      
       await createEvent.mutateAsync({
         eventType,
         locationType,
         numberOfGuests: BigInt(guests),
         eventStyle,
         contact_number: contactNumber,
+        date: dateTimestamp,
       });
+      
+      // Reset form
       setNumberOfGuests('');
       setContactNumber('');
+      setEventDate('');
     } catch (err: any) {
       setError(err.message || 'Failed to create event');
     }
@@ -61,6 +93,19 @@ export default function CreateEventForm() {
             <SelectItem value={EventType.corporate}>Corporate</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="eventDate">Event Date</Label>
+        <Input
+          id="eventDate"
+          type="date"
+          value={eventDate}
+          onChange={(e) => setEventDate(e.target.value)}
+          min={getTodayDate()}
+          required
+          className="w-full"
+        />
       </div>
 
       <div className="space-y-2">

@@ -110,6 +110,7 @@ export interface Event {
     id: bigint;
     eventStyle: EventStyle;
     owner: Principal;
+    date: Time;
     createdAt: Time;
     contact_number: string;
     locationType: LocationType;
@@ -192,7 +193,8 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addPortfolioImage(filename: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    createEvent(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle, contact_number: string): Promise<bigint>;
+    createBooking(eventId: bigint, organizerId: Principal): Promise<bigint>;
+    createEvent(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle, contact_number: string, date: Time): Promise<bigint>;
     deletePortfolioImage(filename: string): Promise<boolean>;
     filterOrganizers(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle): Promise<Array<OrganizerProfile>>;
     getAllBookings(): Promise<Array<Booking>>;
@@ -357,17 +359,31 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createEvent(arg0: EventType, arg1: LocationType, arg2: bigint, arg3: EventStyle, arg4: string): Promise<bigint> {
+    async createBooking(arg0: bigint, arg1: Principal): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.createEvent(to_candid_EventType_n10(this._uploadFile, this._downloadFile, arg0), to_candid_LocationType_n12(this._uploadFile, this._downloadFile, arg1), arg2, to_candid_EventStyle_n14(this._uploadFile, this._downloadFile, arg3), arg4);
+                const result = await this.actor.createBooking(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createEvent(to_candid_EventType_n10(this._uploadFile, this._downloadFile, arg0), to_candid_LocationType_n12(this._uploadFile, this._downloadFile, arg1), arg2, to_candid_EventStyle_n14(this._uploadFile, this._downloadFile, arg3), arg4);
+            const result = await this.actor.createBooking(arg0, arg1);
+            return result;
+        }
+    }
+    async createEvent(arg0: EventType, arg1: LocationType, arg2: bigint, arg3: EventStyle, arg4: string, arg5: Time): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createEvent(to_candid_EventType_n10(this._uploadFile, this._downloadFile, arg0), to_candid_LocationType_n12(this._uploadFile, this._downloadFile, arg1), arg2, to_candid_EventStyle_n14(this._uploadFile, this._downloadFile, arg3), arg4, arg5);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createEvent(to_candid_EventType_n10(this._uploadFile, this._downloadFile, arg0), to_candid_LocationType_n12(this._uploadFile, this._downloadFile, arg1), arg2, to_candid_EventStyle_n14(this._uploadFile, this._downloadFile, arg3), arg4, arg5);
             return result;
         }
     }
@@ -958,6 +974,7 @@ function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uin
     id: bigint;
     eventStyle: _EventStyle;
     owner: Principal;
+    date: _Time;
     createdAt: _Time;
     contact_number: string;
     locationType: _LocationType;
@@ -967,6 +984,7 @@ function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uin
     id: bigint;
     eventStyle: EventStyle;
     owner: Principal;
+    date: Time;
     createdAt: Time;
     contact_number: string;
     locationType: LocationType;
@@ -977,6 +995,7 @@ function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uin
         id: value.id,
         eventStyle: from_candid_EventStyle_n28(_uploadFile, _downloadFile, value.eventStyle),
         owner: value.owner,
+        date: value.date,
         createdAt: value.createdAt,
         contact_number: value.contact_number,
         locationType: from_candid_LocationType_n30(_uploadFile, _downloadFile, value.locationType),

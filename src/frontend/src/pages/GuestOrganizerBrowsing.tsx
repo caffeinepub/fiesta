@@ -47,7 +47,10 @@ export default function GuestOrganizerBrowsing() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <h1 className="text-4xl font-bold text-navy">Find Organizers</h1>
+        <div>
+          <h1 className="text-4xl font-bold text-navy mb-2">Find Organizers</h1>
+          <p className="text-gray-600">Browse available event organizers and book directly or compare multiple options</p>
+        </div>
         {selectedOrganizers.size > 0 && (
           <Button 
             onClick={handleCompare}

@@ -10,10 +10,13 @@ import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+
+// with-migration is required for persistent state changes
 
 actor {
   // Initialize authorization system state and mixin
@@ -67,6 +70,7 @@ actor {
     contact_number : Text;
     owner : Principal;
     createdAt : Time.Time;
+    date : Time.Time;
   };
 
   public type PortfolioImage = {
@@ -215,10 +219,16 @@ actor {
     numberOfGuests : Nat,
     eventStyle : EventStyle,
     contact_number : Text,
+    date : Time.Time,
   ) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can create events");
     };
+
+    if (date < Time.now()) {
+      Runtime.trap("Cannot create events in the past");
+    };
+
     let event : Event = {
       id = eventIdCounter;
       eventType;
@@ -228,6 +238,7 @@ actor {
       contact_number;
       owner = caller;
       createdAt = Time.now();
+      date;
     };
     events.add(eventIdCounter, event);
     eventIdCounter += 1;
@@ -365,15 +376,15 @@ actor {
     organizers.add(caller, updatedOrganizer);
   };
 
-  // Delete Portfolio Image
+  // Delete Portfolio Image - Only the organizer can delete from their own portfolio
   public shared ({ caller }) func deletePortfolioImage(filename : Text) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      return false;
+      Runtime.trap("Unauthorized: Only authenticated users can delete portfolio images");
     };
 
     let organizer = switch (organizers.get(caller)) {
       case (null) {
-        return false;
+        Runtime.trap("Unauthorized: Only organizers can delete portfolio images. No organizer profile found.");
       };
       case (?profile) {
         profile;
@@ -738,5 +749,48 @@ actor {
       };
     };
     bookingsWithStatus.toArray();
+  };
+
+  // Create booking - Only event owners can create bookings for their events
+  public shared ({ caller }) func createBooking(eventId : Nat, organizerId : Principal) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can create bookings");
+    };
+
+    let event = switch (events.get(eventId)) {
+      case (null) {
+        Runtime.trap("Event not found");
+      };
+      case (?event) {
+        event;
+      };
+    };
+
+    // Verify caller owns the event
+    if (event.owner != caller) {
+      Runtime.trap("Unauthorized: Only the event owner can create bookings for this event");
+    };
+
+    let organizer = switch (organizers.get(organizerId)) {
+      case (null) {
+        Runtime.trap("Organizer not found");
+      };
+      case (?organizer) {
+        organizer;
+      };
+    };
+
+    let booking : Booking = {
+      id = bookingIdCounter;
+      eventId;
+      organizerId;
+      guestId = caller;
+      organizerName = organizer.companyName;
+      bookingStatus = #requested;
+      bookingDate = Time.now();
+    };
+    bookings.add(bookingIdCounter, booking);
+    bookingIdCounter += 1;
+    booking.id;
   };
 };

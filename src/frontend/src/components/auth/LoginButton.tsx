@@ -9,7 +9,7 @@ export default function LoginButton() {
 
   const isAuthenticated = !!identity;
   const disabled = loginStatus === 'logging-in';
-  const text = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login';
+  const text = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Log Out' : 'Login';
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -32,8 +32,8 @@ export default function LoginButton() {
     <Button
       onClick={handleAuth}
       disabled={disabled}
-      variant={isAuthenticated ? 'outline' : 'default'}
-      className="gap-2"
+      variant={isAuthenticated ? 'destructive' : 'default'}
+      className={isAuthenticated ? 'gap-2 bg-red-600 hover:bg-red-700 text-white' : 'gap-2'}
     >
       {isAuthenticated ? <LogOut className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
       {text}

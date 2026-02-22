@@ -38,7 +38,8 @@ export default function OrganizerComparison() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Organizers
         </Button>
-        <h1 className="text-4xl font-bold text-navy">Compare Organizers</h1>
+        <h1 className="text-4xl font-bold text-navy mb-2">Compare Organizers</h1>
+        <p className="text-gray-600">Review and compare organizer details side-by-side, then book directly from this page</p>
       </div>
 
       {isLoading ? (

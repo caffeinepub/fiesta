@@ -3,7 +3,7 @@ import { useUpdateBookingStatus, useGetEvent } from '../../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Calendar, CheckCircle, XCircle, Phone } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, Phone, MapPin, Users, Sparkles, CalendarDays } from 'lucide-react';
 import { BookingStatus } from '../../backend';
 
 interface OrganizerBookingCardProps {
@@ -49,6 +49,15 @@ export default function OrganizerBookingCard({ booking }: OrganizerBookingCardPr
     }
   };
 
+  const formatEventDate = (timestamp: bigint) => {
+    const date = new Date(Number(timestamp) / 1000000);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
       <CardHeader>
@@ -66,13 +75,44 @@ export default function OrganizerBookingCard({ booking }: OrganizerBookingCardPr
         </div>
 
         {eventLoading ? (
-          <div className="text-sm text-gray-500">Loading guest contact...</div>
+          <div className="text-sm text-gray-500">Loading event details...</div>
         ) : event ? (
-          <div className="flex items-center gap-2 text-sm bg-gold/10 p-3 rounded-md border border-gold/20">
-            <Phone className="h-4 w-4 text-gold" />
-            <span className="font-semibold text-navy">Guest Contact: {event.contact_number}</span>
+          <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h4 className="font-semibold text-navy text-sm mb-2">Event Details</h4>
+            
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <Calendar className="h-4 w-4 text-gold" />
+              <span className="capitalize font-medium">{event.eventType} Event</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-navy font-medium">
+              <CalendarDays className="h-4 w-4" />
+              <span>{formatEventDate(event.date)}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <MapPin className="h-4 w-4" />
+              <span className="capitalize">{event.locationType}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Users className="h-4 w-4" />
+              <span>{event.numberOfGuests.toString()} guests</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Sparkles className="h-4 w-4" />
+              <span className="capitalize">{event.eventStyle} style</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm bg-gold/10 p-3 rounded-md border border-gold/20 -mx-1">
+              <Phone className="h-4 w-4 text-gold" />
+              <span className="font-semibold text-navy">Guest Contact: {event.contact_number}</span>
+            </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="text-sm text-red-500">Unable to load event details</div>
+        )}
 
         {booking.bookingStatus === 'requested' && (
           <div className="flex gap-2">

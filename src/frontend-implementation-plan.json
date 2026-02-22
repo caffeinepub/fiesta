@@ -1,56 +1,42 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add portfolio image deletion functionality for organizers",
+  "title": "Fix event details display in booking requests",
   "requirements": [
     {
-      "id": "REQ-42",
-      "summary": "Create a React Query mutation hook for deleting portfolio images",
+      "id": "REQ-1",
+      "summary": "Display complete event details in OrganizerBookingCard component for each booking request",
       "acceptanceCriteria": [
-        "Mutation hook accepts filename as a parameter",
-        "Hook invalidates useGetOrganizerPortfolioImages query on successful deletion",
-        "Hook returns loading, error, and success states"
+        "Event type, date, location, guest count, style, and contact number are visible in each booking card",
+        "Event details are properly formatted and displayed with appropriate icons matching the EventList component pattern",
+        "All event information from the associated booking request is accessible to organizers"
       ],
       "file_operations": [
+        {
+          "path": "frontend/src/components/booking/OrganizerBookingCard.tsx",
+          "operation": "modify",
+          "description": "Add event details display section showing event type, date, location, number of guests, style, and contact number. Fetch the full event data using the eventId from the booking and display it with appropriate icons (Calendar, MapPin, Users, Sparkles, Phone) matching the EventList component pattern. Maintain the existing booking status display and approve/reject action buttons. Ensure the layout remains responsive and uses the existing card structure."
+        },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add useDeletePortfolioImage mutation hook that calls actor.deletePortfolioImage(filename) and invalidates the 'organizerPortfolioImages' query cache on success. The hook should return mutation states (isLoading, isError, isSuccess) and accept filename as a parameter. Use the authorization component to ensure the user is authenticated before making the backend call."
+          "description": "Verify that the useGetEvent hook is properly exported and available for use in the OrganizerBookingCard component to fetch event details by eventId. Ensure the hook uses the backend actor's getEvent method and includes proper error handling and loading states."
         }
       ]
     },
     {
-      "id": "REQ-43",
-      "summary": "Update PortfolioUpload component to display delete buttons for existing images",
+      "id": "REQ-2",
+      "summary": "Display complete event details in GuestBookingList component for each booking",
       "acceptanceCriteria": [
-        "Each existing portfolio image thumbnail displays a delete button overlay or adjacent button",
-        "Delete button shows a confirmation dialog before deletion",
-        "Clicking delete triggers the useDeletePortfolioImage mutation",
-        "UI updates immediately to remove the deleted image from the display",
-        "Loading state is shown during deletion operation",
-        "Error messages are displayed if deletion fails"
+        "Event details are visible in guest booking cards alongside organizer name and booking status",
+        "Event information includes all fields: type, date, location, guest count, style, and contact number",
+        "Layout accommodates the additional event details without breaking responsive design"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/organizer/PortfolioUpload.tsx",
+          "path": "frontend/src/components/booking/GuestBookingList.tsx",
           "operation": "modify",
-          "description": "Add a section that displays existing portfolio images fetched from useGetOrganizerPortfolioImages hook. For each image thumbnail, add a delete button (X icon or trash icon) positioned as an overlay or adjacent button. When clicked, show a confirmation dialog before calling the useDeletePortfolioImage mutation hook with the image filename. Display loading state during deletion (e.g., spinner on the delete button or overlay). Show error toast/message if deletion fails. On successful deletion, the UI will automatically update via query invalidation. Use the authorization component to ensure only authenticated organizers can delete their own images."
-        }
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "summary": "Remove deleted image files from static assets directory",
-      "acceptanceCriteria": [
-        "Deleted image files are removed from the static assets directory",
-        "File deletion happens after successful backend deletion confirmation",
-        "System handles cases where the file may already be missing gracefully"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/organizer/PortfolioUpload.tsx",
-          "operation": "modify",
-          "description": "After successful deletion via useDeletePortfolioImage mutation (onSuccess callback), remove the corresponding image file from sessionStorage if it exists. Handle cases where the file reference may already be missing gracefully by checking for existence before removal. Note: Static files in frontend/public/assets/portfolios/ cannot be deleted at runtime from the browser; this operation ensures the sessionStorage cache is cleaned up. Any orphaned static files will need manual cleanup or a build-time cleanup script."
+          "description": "Transform the current minimal booking cards to include complete event details. For each booking, fetch the associated event data using the eventId and display event type, date, location, number of guests, style, and contact number alongside the existing organizer name and booking status. Use icons (Calendar, MapPin, Users, Sparkles, Phone) matching the EventList component pattern. Maintain the color-coded status badges and ensure the expanded card layout remains responsive. Consider using a two-column or stacked layout to accommodate both booking metadata and event details."
         }
       ]
     }

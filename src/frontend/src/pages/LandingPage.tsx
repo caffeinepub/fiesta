@@ -19,9 +19,9 @@ export default function LandingPage() {
       <section className="bg-gradient-to-br from-navy via-navy-dark to-navy py-20 md:py-32">
         <div className="container mx-auto px-4 text-center">
           <img 
-            src="/assets/generated/fiesta-logo.dim_400x120.png" 
+            src="/assets/Fiesta_20260221_085233_0000.jpg" 
             alt="FIESTA" 
-            className="h-16 md:h-20 w-auto mx-auto mb-8"
+            className="h-32 w-32 md:h-40 md:w-40 mx-auto mb-8 object-contain"
           />
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Future-ready Intelligent Event Solution

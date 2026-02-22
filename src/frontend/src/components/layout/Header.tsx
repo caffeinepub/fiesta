@@ -19,9 +19,9 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <img 
-              src="/assets/generated/fiesta-logo.dim_400x120.png" 
+              src="/assets/Fiesta_20260221_085233_0000.jpg" 
               alt="FIESTA Logo" 
-              className="h-12 w-auto object-contain"
+              className="h-12 object-contain"
             />
           </Link>
 

@@ -1,69 +1,47 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T10:25:11.945Z",
+  "generatedAt": "2026-02-22T11:37:55.107Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-41",
-        "summary": "Add a backend function deletePortfolioImage(filename: Text) in backend/main.mo that removes the specified portfolio image from the organizer's portfolio_images array and returns a success/failure result",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-42",
-        "summary": "Create a React Query mutation hook useDeletePortfolioImage in frontend/src/hooks/useQueries.ts that calls the backend deletePortfolioImage function and invalidates the portfolio images query cache on success",
+        "id": "REQ-1",
+        "summary": "Display complete event details (event type, date, location, number of guests, style, contact number) in the OrganizerBookingCard component for each booking request",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/components/booking/OrganizerBookingCard.tsx",
           "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/booking/OrganizerBookingCard.tsx"
         ]
       },
       {
-        "id": "REQ-43",
-        "summary": "Update the PortfolioUpload component in frontend/src/components/organizer/PortfolioUpload.tsx to display existing portfolio images with a delete button (X icon or trash icon) for each image thumbnail, using the useDeletePortfolioImage mutation hook to remove images when clicked",
+        "id": "REQ-2",
+        "summary": "Display complete event details (event type, date, location, number of guests, style, contact number) in the GuestBookingList component for each booking",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/organizer/PortfolioUpload.tsx"
+          "frontend/src/components/booking/GuestBookingList.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/organizer/PortfolioUpload.tsx"
-        ]
-      },
-      {
-        "id": "REQ-44",
-        "summary": "When a portfolio image is successfully deleted via the frontend, remove the corresponding image file from the frontend/public/assets/portfolios/ directory to clean up unused static assets",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/organizer/PortfolioUpload.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/organizer/PortfolioUpload.tsx"
+          "frontend/src/components/booking/GuestBookingList.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/organizer/PortfolioUpload.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/components/booking/GuestBookingList.tsx",
+    "frontend/src/components/booking/OrganizerBookingCard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

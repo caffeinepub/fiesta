@@ -1,94 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Add portfolio image deletion functionality for organizers",
-  "priority": "normal",
+  "title": "Fix event details display in booking requests",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-41",
-      "text": "Add a backend function deletePortfolioImage(filename: Text) in backend/main.mo that removes the specified portfolio image from the organizer's portfolio_images array and returns a success/failure result",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-final"
-        ],
-        "quotes": [
-          "There should be an option to remove already uploaded images too"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend function validates that the caller is authenticated and is an organizer",
-        "Function verifies the image filename exists in the organizer's portfolio before deletion",
-        "Function removes the image metadata from the organizer's portfolio_images array",
-        "Function returns appropriate success or error messages"
-      ]
-    },
-    {
-      "id": "REQ-42",
-      "text": "Create a React Query mutation hook useDeletePortfolioImage in frontend/src/hooks/useQueries.ts that calls the backend deletePortfolioImage function and invalidates the portfolio images query cache on success",
+      "id": "REQ-1",
+      "text": "Display complete event details (event type, date, location, number of guests, style, contact number) in the OrganizerBookingCard component for each booking request",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-final"
+          "msg-latest"
         ],
         "quotes": [
-          "There should be an option to remove already uploaded images too"
+          "I can't still view details of the events in booking requests"
         ]
       },
       "acceptanceCriteria": [
-        "Mutation hook accepts filename as a parameter",
-        "Hook invalidates useGetOrganizerPortfolioImages query on successful deletion",
-        "Hook returns loading, error, and success states"
+        "Event type, date, location, guest count, style, and contact number are visible in each booking card",
+        "Event details are properly formatted and displayed with appropriate icons matching the EventList component pattern",
+        "All event information from the associated booking request is accessible to organizers"
       ]
     },
     {
-      "id": "REQ-43",
-      "text": "Update the PortfolioUpload component in frontend/src/components/organizer/PortfolioUpload.tsx to display existing portfolio images with a delete button (X icon or trash icon) for each image thumbnail, using the useDeletePortfolioImage mutation hook to remove images when clicked",
+      "id": "REQ-2",
+      "text": "Display complete event details (event type, date, location, number of guests, style, contact number) in the GuestBookingList component for each booking",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-final"
+          "msg-latest"
         ],
         "quotes": [
-          "There should be an option to remove already uploaded images too"
+          "I can't still view details of the events in booking requests"
         ]
       },
       "acceptanceCriteria": [
-        "Each existing portfolio image thumbnail displays a delete button overlay or adjacent button",
-        "Delete button shows a confirmation dialog before deletion",
-        "Clicking delete triggers the useDeletePortfolioImage mutation",
-        "UI updates immediately to remove the deleted image from the display",
-        "Loading state is shown during deletion operation",
-        "Error messages are displayed if deletion fails"
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "text": "When a portfolio image is successfully deleted via the frontend, remove the corresponding image file from the frontend/public/assets/portfolios/ directory to clean up unused static assets",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-final"
-        ],
-        "quotes": [
-          "There should be an option to remove already uploaded images too"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Deleted image files are removed from the static assets directory",
-        "File deletion happens after successful backend deletion confirmation",
-        "System handles cases where the file may already be missing gracefully"
+        "Event details are visible in guest booking cards alongside organizer name and booking status",
+        "Event information includes all fields: type, date, location, guest count, style, and contact number",
+        "Layout accommodates the additional event details without breaking responsive design"
       ]
     }
   ],
   "constraints": [
-    "Only organizers can delete their own portfolio images",
-    "Maintain the existing portfolio image storage structure in frontend/public/assets/portfolios/",
-    "Preserve the existing PortfolioGallery component functionality for displaying images"
+    "Do not modify the backend schema or data structures",
+    "Maintain existing booking status color coding and UI patterns",
+    "Preserve the current booking approval/rejection workflow for organizers"
   ],
   "nonGoals": [
-    "Bulk deletion of multiple images at once",
-    "Undo/restore functionality for deleted images",
-    "Image editing or cropping features"
+    "Adding new event fields or modifying event data structure",
+    "Changing the booking request submission process",
+    "Modifying the authentication or authorization system"
   ],
   "imageRequirements": {
     "required": [],

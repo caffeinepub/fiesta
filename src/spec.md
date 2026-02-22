@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Enable organizers to delete portfolio images they have previously uploaded.
+**Goal:** Fix event details display in booking requests for both organizers and guests.
 
 **Planned changes:**
-- Add backend function to delete portfolio images from an organizer's portfolio
-- Create React Query mutation hook for deleting portfolio images
-- Update PortfolioUpload component to display delete buttons on existing image thumbnails
-- Remove deleted image files from the static assets directory after successful deletion
+- Display complete event details (event type, date, location, number of guests, style, contact number) in OrganizerBookingCard component
+- Display complete event details in GuestBookingList component
+- Format event details with appropriate icons matching the EventList component pattern
+- Ensure responsive layout accommodates the additional event information
 
-**User-visible outcome:** Organizers can view their uploaded portfolio images with a delete button on each thumbnail, click to confirm deletion, and remove unwanted images from their portfolio.
+**User-visible outcome:** Organizers and guests can now view all event details (type, date, location, guest count, style, contact number) directly in their booking request cards without needing to navigate elsewhere.

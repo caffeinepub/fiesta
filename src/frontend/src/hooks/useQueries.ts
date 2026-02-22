@@ -79,6 +79,7 @@ export function useCreateEvent() {
       numberOfGuests: bigint;
       eventStyle: EventStyle;
       contact_number: string;
+      date: bigint;
     }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.createEvent(
@@ -86,7 +87,8 @@ export function useCreateEvent() {
         params.locationType,
         params.numberOfGuests,
         params.eventStyle,
-        params.contact_number
+        params.contact_number,
+        params.date
       );
     },
     onSuccess: () => {
@@ -337,6 +339,22 @@ export function useGetOrganizerPortfolioImages(organizerId: Principal) {
 }
 
 // Booking Queries
+export function useCreateBooking() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { eventId: bigint; organizerId: Principal }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.createBooking(params.eventId, params.organizerId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guestBookings'] });
+      queryClient.invalidateQueries({ queryKey: ['organizerBookings'] });
+    },
+  });
+}
+
 export function useRequestBooking() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -417,7 +435,7 @@ export function useSubmitReview() {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['organizerReviews'] });
     },
   });
 }
@@ -426,7 +444,7 @@ export function useGetOrganizerReviews(organizerId: Principal) {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<Review[]>({
-    queryKey: ['reviews', organizerId.toString()],
+    queryKey: ['organizerReviews', organizerId.toString()],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getOrganizerReviews(organizerId);

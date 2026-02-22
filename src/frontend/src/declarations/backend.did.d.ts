@@ -27,6 +27,7 @@ export interface Event {
   'id' : bigint,
   'eventStyle' : EventStyle,
   'owner' : Principal,
+  'date' : Time,
   'createdAt' : Time,
   'contact_number' : string,
   'locationType' : LocationType,
@@ -106,8 +107,9 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addPortfolioImage' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'createBooking' : ActorMethod<[bigint, Principal], bigint>,
   'createEvent' : ActorMethod<
-    [EventType, LocationType, bigint, EventStyle, string],
+    [EventType, LocationType, bigint, EventStyle, string, Time],
     bigint
   >,
   'deletePortfolioImage' : ActorMethod<[string], boolean>,

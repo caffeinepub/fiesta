@@ -1,6 +1,6 @@
 import type { Event } from '../../backend';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Calendar, MapPin, Users, Sparkles, Phone } from 'lucide-react';
+import { Calendar, MapPin, Users, Sparkles, Phone, CalendarDays } from 'lucide-react';
 
 interface EventListProps {
   events: Event[];
@@ -10,6 +10,15 @@ export default function EventList({ events }: EventListProps) {
   if (events.length === 0) {
     return <p className="text-gray-500">No events yet. Create your first event!</p>;
   }
+
+  const formatEventDate = (timestamp: bigint) => {
+    const date = new Date(Number(timestamp) / 1000000);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -22,6 +31,10 @@ export default function EventList({ events }: EventListProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-navy">
+              <CalendarDays className="h-4 w-4" />
+              <span>{formatEventDate(event.date)}</span>
+            </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <MapPin className="h-4 w-4" />
               <span className="capitalize">{event.locationType}</span>

@@ -1,0 +1,58 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add portfolio image deletion functionality for organizers",
+  "requirements": [
+    {
+      "id": "REQ-42",
+      "summary": "Create a React Query mutation hook for deleting portfolio images",
+      "acceptanceCriteria": [
+        "Mutation hook accepts filename as a parameter",
+        "Hook invalidates useGetOrganizerPortfolioImages query on successful deletion",
+        "Hook returns loading, error, and success states"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useDeletePortfolioImage mutation hook that calls actor.deletePortfolioImage(filename) and invalidates the 'organizerPortfolioImages' query cache on success. The hook should return mutation states (isLoading, isError, isSuccess) and accept filename as a parameter. Use the authorization component to ensure the user is authenticated before making the backend call."
+        }
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "summary": "Update PortfolioUpload component to display delete buttons for existing images",
+      "acceptanceCriteria": [
+        "Each existing portfolio image thumbnail displays a delete button overlay or adjacent button",
+        "Delete button shows a confirmation dialog before deletion",
+        "Clicking delete triggers the useDeletePortfolioImage mutation",
+        "UI updates immediately to remove the deleted image from the display",
+        "Loading state is shown during deletion operation",
+        "Error messages are displayed if deletion fails"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/organizer/PortfolioUpload.tsx",
+          "operation": "modify",
+          "description": "Add a section that displays existing portfolio images fetched from useGetOrganizerPortfolioImages hook. For each image thumbnail, add a delete button (X icon or trash icon) positioned as an overlay or adjacent button. When clicked, show a confirmation dialog before calling the useDeletePortfolioImage mutation hook with the image filename. Display loading state during deletion (e.g., spinner on the delete button or overlay). Show error toast/message if deletion fails. On successful deletion, the UI will automatically update via query invalidation. Use the authorization component to ensure only authenticated organizers can delete their own images."
+        }
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "summary": "Remove deleted image files from static assets directory",
+      "acceptanceCriteria": [
+        "Deleted image files are removed from the static assets directory",
+        "File deletion happens after successful backend deletion confirmation",
+        "System handles cases where the file may already be missing gracefully"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/organizer/PortfolioUpload.tsx",
+          "operation": "modify",
+          "description": "After successful deletion via useDeletePortfolioImage mutation (onSuccess callback), remove the corresponding image file from sessionStorage if it exists. Handle cases where the file reference may already be missing gracefully by checking for existence before removal. Note: Static files in frontend/public/assets/portfolios/ cannot be deleted at runtime from the browser; this operation ensures the sessionStorage cache is cleaned up. Any orphaned static files will need manual cleanup or a build-time cleanup script."
+        }
+      ]
+    }
+  ]
+}

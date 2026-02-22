@@ -1,0 +1,65 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-a-react-query-mutation-hook-usedeleteportfolioimage-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-deleteportfolioimage-function-and-invalidates-the-portfolio-images-query-cache-on-success",
+      "featureTitle": "Create a React Query mutation hook useDeletePortfolioImage in frontend/src/hooks/useQueries.ts that calls the backend deletePortfolioImage function and invalidates the portfolio images query cache on success",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-42"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-portfolioupload-component-in-frontend-src-components-organizer-portfolioupload-tsx-to-display-existing-portfolio-images-with-a-delete-button-x-icon-or-trash-icon-for-each-image-thumbnail-using-the-usedeleteportfolioimage-mutation-hook-to-remove-images-when-clicked",
+      "featureTitle": "Update the PortfolioUpload component in frontend/src/components/organizer/PortfolioUpload.tsx to display existing portfolio images with a delete button (X icon or trash icon) for each image thumbnail, using the useDeletePortfolioImage mutation hook to remove images when clicked",
+      "files": [
+        "frontend/src/components/organizer/PortfolioUpload.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-43"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-when-a-portfolio-image-is-successfully-deleted-via-the-frontend-remove-the-corresponding-image-file-from-the-frontend-public-assets-portfolios-directory-to-clean-up-unused-static-assets",
+      "featureTitle": "When a portfolio image is successfully deleted via the frontend, remove the corresponding image file from the frontend/public/assets/portfolios/ directory to clean up unused static assets",
+      "files": [
+        "frontend/src/components/organizer/PortfolioUpload.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-44"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

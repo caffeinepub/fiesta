@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-display-complete-event-details-event-type-date-location-number-of-guests-style-contact-number-in-the-organizerbookingcard-component-for-each-booking-request",
-      "featureTitle": "Display complete event details (event type, date, location, number of guests, style, contact number) in the OrganizerBookingCard component for each booking request",
+      "featureId": "feature-restore-all-navigation-menu-items-in-the-header-component-that-were-visible-before-version-20-ensure-authenticated-users-see-my-events-find-organizers-my-bookings-and-organizer-dashboard-links-in-addition-to-the-logout-button",
+      "featureTitle": "Restore all navigation menu items in the Header component that were visible before Version 20. Ensure authenticated users see 'My Events', 'Find Organizers', 'My Bookings', and 'Organizer Dashboard' links in addition to the logout button.",
       "files": [
-        "frontend/src/components/booking/OrganizerBookingCard.tsx"
+        "frontend/src/components/layout/Header.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -22,10 +22,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-display-complete-event-details-event-type-date-location-number-of-guests-style-contact-number-in-the-guestbookinglist-component-for-each-booking",
-      "featureTitle": "Display complete event details (event type, date, location, number of guests, style, contact number) in the GuestBookingList component for each booking",
+      "featureId": "feature-verify-that-the-navigation-menu-conditional-rendering-logic-correctly-handles-authenticated-vs-unauthenticated-states-without-hiding-menu-items-inappropriately",
+      "featureTitle": "Verify that the navigation menu conditional rendering logic correctly handles authenticated vs unauthenticated states without hiding menu items inappropriately.",
       "files": [
-        "frontend/src/components/booking/GuestBookingList.tsx"
+        "frontend/src/components/layout/Header.tsx"
       ],
       "components": [
         "authorization@4.0.0",

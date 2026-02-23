@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix event details display in booking requests for both organizers and guests.
+**Goal:** Restore missing navigation menu items in the Header component that disappeared after Version 20 deployment.
 
 **Planned changes:**
-- Display complete event details (event type, date, location, number of guests, style, contact number) in OrganizerBookingCard component
-- Display complete event details in GuestBookingList component
-- Format event details with appropriate icons matching the EventList component pattern
-- Ensure responsive layout accommodates the additional event information
+- Fix the Header component to display all navigation links ('My Events', 'Find Organizers', 'My Bookings', 'Organizer Dashboard') for authenticated users
+- Verify conditional rendering logic correctly shows menu items based on authentication state
+- Ensure mobile hamburger menu displays all navigation options
+- Confirm no CSS rules are unintentionally hiding navigation items
 
-**User-visible outcome:** Organizers and guests can now view all event details (type, date, location, guest count, style, contact number) directly in their booking request cards without needing to navigate elsewhere.
+**User-visible outcome:** Authenticated users will see the complete navigation menu with all expected links (My Events, Find Organizers, My Bookings, Organizer Dashboard) alongside the logout button, restoring the navigation experience from before Version 20.

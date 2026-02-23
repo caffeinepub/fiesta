@@ -4,36 +4,29 @@
   "summary": "New project",
   "architectural_notes": [],
   "known_issues": [
-    "Event details not displaying in booking requests section"
+    "Only logout option visible in menu after Version 20 deployment"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-display-complete-event-details-event-type-date-location-number-of-guests-style-contact-number-in-the-organizerbookingcard-component-for-each-booking-request",
-      "title": "Display complete event details (event type, date, location, number of guests, style, contact number) in the OrganizerBookingCard component for each booking request",
+      "id": "feature-restore-all-navigation-menu-items-in-the-header-component-that-were-visible-before-version-20-ensure-authenticated-users-see-my-events-find-organizers-my-bookings-and-organizer-dashboard-links-in-addition-to-the-logout-button",
+      "title": "Restore all navigation menu items in the Header component that were visible before Version 20. Ensure authenticated users see 'My Events', 'Find Organizers', 'My Bookings', and 'Organizer Dashboard' links in addition to the logout button.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-display-complete-event-details-event-type-date-location-number-of-guests-style-contact-number-in-the-guestbookinglist-component-for-each-booking",
-      "title": "Display complete event details (event type, date, location, number of guests, style, contact number) in the GuestBookingList component for each booking",
+      "id": "feature-verify-that-the-navigation-menu-conditional-rendering-logic-correctly-handles-authenticated-vs-unauthenticated-states-without-hiding-menu-items-inappropriately",
+      "title": "Verify that the navigation menu conditional rendering logic correctly handles authenticated vs unauthenticated states without hiding menu items inappropriately.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Fix event details viewing in booking requests",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Fix event details display in booking requests",
+  "new_feature_requests": [],
+  "projectName": "FIESTA",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

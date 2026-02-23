@@ -1,54 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Fix event details display in booking requests",
+  "title": "Fix missing navigation menu items after Version 20 deployment",
+  "projectName": "FIESTA",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Display complete event details (event type, date, location, number of guests, style, contact number) in the OrganizerBookingCard component for each booking request",
+      "text": "Restore all navigation menu items in the Header component that were visible before Version 20. Ensure authenticated users see 'My Events', 'Find Organizers', 'My Bookings', and 'Organizer Dashboard' links in addition to the logout button.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
         ],
         "quotes": [
-          "I can't still view details of the events in booking requests"
+          "Only logout option is there now... Look into it"
         ]
       },
       "acceptanceCriteria": [
-        "Event type, date, location, guest count, style, and contact number are visible in each booking card",
-        "Event details are properly formatted and displayed with appropriate icons matching the EventList component pattern",
-        "All event information from the associated booking request is accessible to organizers"
+        "All navigation links ('My Events', 'Find Organizers', 'My Bookings', 'Organizer Dashboard') are visible in the desktop menu for authenticated users",
+        "Mobile menu hamburger displays all navigation options when opened",
+        "Logout button remains functional alongside other menu items",
+        "Navigation menu appearance matches the state before Version 20 deployment"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Display complete event details (event type, date, location, number of guests, style, contact number) in the GuestBookingList component for each booking",
+      "text": "Verify that the navigation menu conditional rendering logic correctly handles authenticated vs unauthenticated states without hiding menu items inappropriately.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
-        ],
-        "quotes": [
-          "I can't still view details of the events in booking requests"
         ]
       },
       "acceptanceCriteria": [
-        "Event details are visible in guest booking cards alongside organizer name and booking status",
-        "Event information includes all fields: type, date, location, guest count, style, and contact number",
-        "Layout accommodates the additional event details without breaking responsive design"
+        "Unauthenticated users see appropriate landing page navigation",
+        "Authenticated users see full navigation menu with all role-appropriate links",
+        "No CSS or styling rules are hiding navigation items unintentionally"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the backend schema or data structures",
-    "Maintain existing booking status color coding and UI patterns",
-    "Preserve the current booking approval/rejection workflow for organizers"
+    "Do not modify authentication logic or Internet Identity integration",
+    "Preserve existing routing structure and page components",
+    "Maintain responsive mobile menu functionality"
   ],
   "nonGoals": [
-    "Adding new event fields or modifying event data structure",
-    "Changing the booking request submission process",
-    "Modifying the authentication or authorization system"
+    "Redesigning the header layout or styling",
+    "Adding new navigation items beyond what existed before Version 20",
+    "Changing the logout button appearance or position"
   ],
   "imageRequirements": {
     "required": [],

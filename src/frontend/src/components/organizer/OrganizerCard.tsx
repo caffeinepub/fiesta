@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import type { OrganizerProfile as Organizer } from '../../backend';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Checkbox } from '../ui/checkbox';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Star, Phone, Briefcase, DollarSign, Image as ImageIcon, Calendar } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Star, Phone, Briefcase, DollarSign, Image as ImageIcon, Calendar, ZoomIn } from 'lucide-react';
 import { useGetOrganizerPortfolioImages } from '../../hooks/useQueries';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import BookingRequestModal from '../booking/BookingRequestModal';
@@ -13,9 +13,10 @@ interface OrganizerCardProps {
   organizer: Organizer;
   isSelected?: boolean;
   onToggleSelection?: (organizerId: string) => void;
+  onImageClick?: (imageSrc: string, allImages: string[], index: number) => void;
 }
 
-export default function OrganizerCard({ organizer, isSelected = false, onToggleSelection }: OrganizerCardProps) {
+export default function OrganizerCard({ organizer, isSelected = false, onToggleSelection, onImageClick }: OrganizerCardProps) {
   const { identity } = useInternetIdentity();
   const { data: portfolioImages = [] } = useGetOrganizerPortfolioImages(organizer.userId);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -37,6 +38,15 @@ export default function OrganizerCard({ organizer, isSelected = false, onToggleS
     }
     // Otherwise use the static assets path
     return `/assets/portfolios/${filename}`;
+  };
+
+  // Get all image sources for lightbox navigation
+  const allImageSources = portfolioImages.map(img => getImageSrc(img.filename));
+
+  const handleImageClick = (index: number) => {
+    if (onImageClick && allImageSources.length > 0) {
+      onImageClick(allImageSources[index], allImageSources, index);
+    }
   };
 
   return (
@@ -97,20 +107,31 @@ export default function OrganizerCard({ organizer, isSelected = false, onToggleS
               </div>
               <div className="flex gap-2">
                 {previewImages.map((image, index) => (
-                  <div key={`${image.filename}-${index}`} className="flex-1">
+                  <div 
+                    key={`${image.filename}-${index}`} 
+                    className="flex-1 relative group cursor-pointer"
+                    onClick={() => handleImageClick(index)}
+                  >
                     <img
                       src={getImageSrc(image.filename)}
                       alt={`Portfolio ${index + 1}`}
-                      className="w-full h-20 object-cover rounded aspect-square"
+                      className="w-full h-20 object-cover rounded aspect-square transition-transform group-hover:scale-105"
                       onError={(e) => {
                         // Fallback to a placeholder if image fails to load
                         const target = e.target as HTMLImageElement;
                         target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect fill="%23f3f4f6" width="100" height="100"/%3E%3Ctext x="50" y="50" font-family="Arial" font-size="14" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                       }}
                     />
+                    {/* Zoom overlay indicator */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all rounded flex items-center justify-center">
+                      <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                   </div>
                 ))}
               </div>
+              {onImageClick && (
+                <p className="text-xs text-gray-500 mt-1 text-center">Click images to view full size</p>
+              )}
             </div>
           )}
 

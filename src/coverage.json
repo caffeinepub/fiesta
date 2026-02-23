@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-22T11:37:55.107Z",
+  "generatedAt": "2026-02-22T12:11:10.383Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,25 +12,25 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Display complete event details (event type, date, location, number of guests, style, contact number) in the OrganizerBookingCard component for each booking request",
+        "summary": "Restore all navigation menu items in the Header component that were visible before Version 20. Ensure authenticated users see 'My Events', 'Find Organizers', 'My Bookings', and 'Organizer Dashboard' links in addition to the logout button.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/booking/OrganizerBookingCard.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/layout/Header.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/booking/OrganizerBookingCard.tsx"
+          "frontend/src/components/layout/Header.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Display complete event details (event type, date, location, number of guests, style, contact number) in the GuestBookingList component for each booking",
+        "summary": "Verify that the navigation menu conditional rendering logic correctly handles authenticated vs unauthenticated states without hiding menu items inappropriately.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/booking/GuestBookingList.tsx"
+          "frontend/src/components/layout/Header.tsx",
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/components/booking/GuestBookingList.tsx"
+          "frontend/src/components/layout/Header.tsx"
         ]
       }
     ]
@@ -40,8 +40,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/booking/GuestBookingList.tsx",
-    "frontend/src/components/booking/OrganizerBookingCard.tsx",
+    "frontend/src/components/layout/Header.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,42 +1,43 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix event details display in booking requests",
+  "title": "Fix missing navigation menu items after Version 20 deployment",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Display complete event details in OrganizerBookingCard component for each booking request",
+      "summary": "Restore all navigation menu items in the Header component that were visible before Version 20, ensuring authenticated users see 'My Events', 'Find Organizers', 'My Bookings', and 'Organizer Dashboard' links alongside the logout button",
       "acceptanceCriteria": [
-        "Event type, date, location, guest count, style, and contact number are visible in each booking card",
-        "Event details are properly formatted and displayed with appropriate icons matching the EventList component pattern",
-        "All event information from the associated booking request is accessible to organizers"
+        "All navigation links ('My Events', 'Find Organizers', 'My Bookings', 'Organizer Dashboard') are visible in the desktop menu for authenticated users",
+        "Mobile menu hamburger displays all navigation options when opened",
+        "Logout button remains functional alongside other menu items",
+        "Navigation menu appearance matches the state before Version 20 deployment"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/booking/OrganizerBookingCard.tsx",
+          "path": "frontend/src/components/layout/Header.tsx",
           "operation": "modify",
-          "description": "Add event details display section showing event type, date, location, number of guests, style, and contact number. Fetch the full event data using the eventId from the booking and display it with appropriate icons (Calendar, MapPin, Users, Sparkles, Phone) matching the EventList component pattern. Maintain the existing booking status display and approve/reject action buttons. Ensure the layout remains responsive and uses the existing card structure."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Verify that the useGetEvent hook is properly exported and available for use in the OrganizerBookingCard component to fetch event details by eventId. Ensure the hook uses the backend actor's getEvent method and includes proper error handling and loading states."
+          "description": "Review the conditional rendering logic for navigation menu items in both desktop and mobile views. Ensure that when a user is authenticated (identity is truthy), all navigation links ('My Events', 'Find Organizers', 'My Bookings', 'Organizer Dashboard') are rendered alongside the LoginButton. Check that no CSS classes are hiding these links and that the mobile menu (if using a hamburger toggle) includes all navigation items when opened. Restore any menu items that were accidentally removed or conditionally hidden during Version 20 deployment."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Display complete event details in GuestBookingList component for each booking",
+      "summary": "Verify that the navigation menu conditional rendering logic correctly handles authenticated vs unauthenticated states without hiding menu items inappropriately",
       "acceptanceCriteria": [
-        "Event details are visible in guest booking cards alongside organizer name and booking status",
-        "Event information includes all fields: type, date, location, guest count, style, and contact number",
-        "Layout accommodates the additional event details without breaking responsive design"
+        "Unauthenticated users see appropriate landing page navigation",
+        "Authenticated users see full navigation menu with all role-appropriate links",
+        "No CSS or styling rules are hiding navigation items unintentionally"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/booking/GuestBookingList.tsx",
+          "path": "frontend/src/components/layout/Header.tsx",
           "operation": "modify",
-          "description": "Transform the current minimal booking cards to include complete event details. For each booking, fetch the associated event data using the eventId and display event type, date, location, number of guests, style, and contact number alongside the existing organizer name and booking status. Use icons (Calendar, MapPin, Users, Sparkles, Phone) matching the EventList component pattern. Maintain the color-coded status badges and ensure the expanded card layout remains responsive. Consider using a two-column or stacked layout to accommodate both booking metadata and event details."
+          "description": "Audit the authentication state checks and ensure that the conditional rendering for authenticated vs unauthenticated users is correct. Verify that unauthenticated users see the landing page navigation (e.g., logo, login button) and authenticated users see the full navigation menu with all role-appropriate links. Check that no inline styles, CSS classes, or display properties are unintentionally hiding navigation items. Test that the useInternetIdentity hook's identity value is being used correctly to determine visibility of menu items."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Review global CSS rules and custom styles to ensure no rules are unintentionally hiding navigation menu items. Check for any display:none, visibility:hidden, or opacity:0 rules that might be affecting navigation links. Verify that responsive breakpoint styles for mobile and desktop menus are not causing navigation items to disappear unexpectedly."
         }
       ]
     }

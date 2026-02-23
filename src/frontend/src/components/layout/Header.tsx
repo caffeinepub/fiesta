@@ -11,7 +11,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isAuthenticated = !!identity && !!userProfile;
+  const isAuthenticated = !!identity;
 
   return (
     <header className="bg-navy text-white shadow-lg sticky top-0 z-50">

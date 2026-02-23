@@ -5,6 +5,8 @@ import OrganizerProfileForm from '../components/organizer/OrganizerProfileForm';
 import OrganizerProfileView from '../components/organizer/OrganizerProfileView';
 import PortfolioUpload from '../components/organizer/PortfolioUpload';
 import PortfolioGallery from '../components/organizer/PortfolioGallery';
+import EventPhotoUpload from '../components/organizer/EventPhotoUpload';
+import EventPhotoGallery from '../components/organizer/EventPhotoGallery';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { useEffect, useState } from 'react';
@@ -87,6 +89,22 @@ export default function OrganizerDashboard() {
               </CardHeader>
               <CardContent>
                 <PortfolioGallery organizerId={identity.getPrincipal()} />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Event Photos Section */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-navy">Event Photos</h2>
+            
+            <EventPhotoUpload />
+            
+            <Card className="shadow-soft">
+              <CardHeader>
+                <CardTitle className="text-xl text-navy">Your Event Photos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EventPhotoGallery />
               </CardContent>
             </Card>
           </div>

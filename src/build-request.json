@@ -1,53 +1,172 @@
 {
   "kind": "build_request",
-  "title": "Fix missing navigation menu items after Version 20 deployment",
+  "title": "Add persistent event photo storage and management for organizers",
   "projectName": "FIESTA",
-  "priority": "high",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Restore all navigation menu items in the Header component that were visible before Version 20. Ensure authenticated users see 'My Events', 'Find Organizers', 'My Bookings', and 'Organizer Dashboard' links in addition to the logout button.",
-      "target": "frontend",
+      "text": "Add stable storage for event photos in the backend with fields for photo ID, organizer principal, image blob data, content type, filename, and upload timestamp",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-recent"
         ],
         "quotes": [
-          "Only logout option is there now... Look into it"
+          "Event photos, yes persist permanently until deleted by organisers"
         ]
       },
       "acceptanceCriteria": [
-        "All navigation links ('My Events', 'Find Organizers', 'My Bookings', 'Organizer Dashboard') are visible in the desktop menu for authenticated users",
-        "Mobile menu hamburger displays all navigation options when opened",
-        "Logout button remains functional alongside other menu items",
-        "Navigation menu appearance matches the state before Version 20 deployment"
+        "Event photos are stored in stable memory and persist across canister upgrades",
+        "Each photo record includes organizer ownership information",
+        "Photo data includes blob content, MIME type, and metadata"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Verify that the navigation menu conditional rendering logic correctly handles authenticated vs unauthenticated states without hiding menu items inappropriately.",
-      "target": "frontend",
+      "text": "Implement backend methods for uploading event photos (uploadEventPhoto) that accepts image blob data, content type, and filename, returning the created photo ID",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-recent"
+        ],
+        "quotes": [
+          "Image upload functionality in the organizers section with backend storage"
         ]
       },
       "acceptanceCriteria": [
-        "Unauthenticated users see appropriate landing page navigation",
-        "Authenticated users see full navigation menu with all role-appropriate links",
-        "No CSS or styling rules are hiding navigation items unintentionally"
+        "Only authenticated organizers can upload photos",
+        "Upload method accepts blob data with content type validation",
+        "Returns unique photo ID upon successful upload"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Implement backend method for retrieving event photos (getEventPhotos) that returns all photos belonging to the calling organizer with image data and metadata",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Proper persistence using the Internet Computer's stable storage",
+          "Fix for the 'image not found' issue by ensuring images are properly stored and retrieved from the backend"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Returns array of photo objects with blob data and metadata",
+        "Only returns photos owned by the calling organizer",
+        "Images persist across browser sessions and tab closures"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Implement backend method for deleting event photos (deleteEventPhoto) that accepts a photo ID and removes it from storage, with authorization check to ensure only the photo owner can delete",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Delete functionality for organizers to remove images permanently"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Only the organizer who uploaded a photo can delete it",
+        "Photo is permanently removed from stable storage",
+        "Returns success confirmation or error if photo not found"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add event photo upload interface to the OrganizerDashboard page with file input supporting JPG, PNG, and WebP formats, upload progress indicator, and preview of uploaded images",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Upload Interface - Image upload in the organizers section"
+        ]
+      },
+      "acceptanceCriteria": [
+        "File input accepts image files (JPG, PNG, WebP)",
+        "Shows upload progress during file transfer",
+        "Displays preview thumbnails of uploaded images",
+        "Upload interface is accessible from organizer dashboard"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Create an event photo gallery component that displays all uploaded event photos in a grid layout with full-size lightbox view and navigation controls",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Gallery View - Display all uploaded event photos with proper retrieval from backend"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Gallery displays all event photos uploaded by the organizer",
+        "Grid layout with responsive design",
+        "Clicking photo opens full-size lightbox modal",
+        "Lightbox includes navigation controls to browse photos"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add delete buttons to each event photo in the gallery that trigger deleteEventPhoto backend call with confirmation dialog before deletion",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Delete Feature - Allow organizers to remove images permanently"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each photo has a visible delete button",
+        "Confirmation dialog appears before deletion",
+        "Successfully deleted photos are removed from gallery immediately",
+        "Error handling for failed deletions with user feedback"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Create React Query hooks for event photo operations: useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto with proper cache invalidation",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Ensure images persist across browser sessions and tab closures"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Upload hook handles file to blob conversion and backend upload",
+        "Get photos hook fetches and caches event photos from backend",
+        "Delete hook invalidates cache after successful deletion",
+        "All hooks include loading and error states"
       ]
     }
   ],
   "constraints": [
-    "Do not modify authentication logic or Internet Identity integration",
-    "Preserve existing routing structure and page components",
-    "Maintain responsive mobile menu functionality"
+    "Use existing backend single-actor architecture in backend/main.mo",
+    "Follow existing PortfolioUpload.tsx and PortfolioGallery.tsx patterns for event photo components",
+    "Integrate event photo upload and gallery into existing OrganizerDashboard page layout",
+    "Use existing authentication system via useInternetIdentity hook",
+    "Follow existing file naming conventions and project structure"
   ],
   "nonGoals": [
-    "Redesigning the header layout or styling",
-    "Adding new navigation items beyond what existed before Version 20",
-    "Changing the logout button appearance or position"
+    "Modifying portfolio image functionality",
+    "Adding event photo upload for guests or admins",
+    "Implementing image editing or filtering features",
+    "Adding size or format restrictions on uploads",
+    "Creating separate event photo management page outside organizer dashboard"
   ],
   "imageRequirements": {
     "required": [],

@@ -1,6 +1,6 @@
 {
   "frontend/src/App.tsx": "Main application component with TanStack Router setup, defining all routes for landing, guest, organizer, and admin pages with Layout wrapper including Header, Footer, and ProfileSetupModal.",
-  "frontend/src/hooks/useQueries.ts": "Centralized React Query hooks for all backend operations including useCreateEvent mutation updated to accept date parameter with proper timestamp conversion and integration with the backend createEvent function.",
+  "frontend/src/hooks/useQueries.ts": "Centralized React Query hooks for all backend operations including useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto mutations with proper cache invalidation for event photo management.",
   "frontend/src/hooks/useGetCallerUserProfile.ts": "React Query hook for fetching current user profile with proper loading state management to prevent modal flash on authentication.",
   "frontend/src/components/auth/LoginButton.tsx": "Login/logout button component using Internet Identity with query cache clearing on logout, red background styling for logout button with white text displaying \"Log Out\", and error handling for authentication edge cases.",
   "frontend/src/components/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user profile setup collecting full name and case-sensitive email with form validation and error handling.",
@@ -11,7 +11,7 @@
   "frontend/src/pages/GuestOrganizerBrowsing.tsx": "Organizer browsing page with checkbox selection for comparison, navigation to comparison view, and integrated full-screen image lightbox modal with keyboard navigation (arrow keys and Escape) for viewing organizer portfolio images at full size.",
   "frontend/src/pages/OrganizerComparison.tsx": "Comparison page displaying selected organizers in a sortable table with contact numbers highlighted, back navigation to browsing, and integrated booking functionality via the Actions column in the comparison table.",
   "frontend/src/pages/GuestBookings.tsx": "Guest bookings page displaying all booking requests with status badges and organizer information with authentication guard.",
-  "frontend/src/pages/OrganizerDashboard.tsx": "Organizer dashboard with conditional rendering for profile creation/edit form, profile view, portfolio upload section, and portfolio gallery, all with proper loading states and authentication guards.",
+  "frontend/src/pages/OrganizerDashboard.tsx": "Organizer dashboard with conditional rendering for profile creation/edit form, profile view, portfolio upload section, portfolio gallery, event photo upload section, and event photo gallery, all with proper loading states and authentication guards.",
   "frontend/src/pages/OrganizerBookingManagement.tsx": "Organizer booking management page displaying pending and past booking requests with approve/reject actions.",
   "frontend/src/pages/AdminDashboard.tsx": "Admin dashboard page with role-based access control displaying analytics for total users, organizers, events, and top performers.",
   "frontend/src/components/events/CreateEventForm.tsx": "Event creation form with dropdowns for event type, location, style, date picker with past date validation, number input for guests, text input for contact number, and backend submission with proper date timestamp conversion.",
@@ -32,5 +32,7 @@
   "frontend/src/lib/utils.ts": "Utility function combining clsx and tailwind-merge for conditional className merging in components.",
   "frontend/src/components/organizer/PortfolioUpload.tsx": "Portfolio image management component with file upload validation, thumbnail previews, upload progress indication, existing images display with delete buttons, confirmation dialog for deletion, and integration with useAddPortfolioImage and useDeletePortfolioImage mutation hooks.",
   "frontend/src/components/organizer/PortfolioGallery.tsx": "Portfolio gallery component displaying images in responsive grid with lightbox modal, navigation controls, empty state message, and robust error handling with fallback placeholders for missing or broken images.",
-  "frontend/src/components/booking/BookingRequestModal.tsx": "Modal dialog for creating booking requests that allows guests to select from their existing events, validates event selection, displays success/error messages, and navigates to the bookings page after successful submission."
+  "frontend/src/components/booking/BookingRequestModal.tsx": "Modal dialog for creating booking requests that allows guests to select from their existing events, validates event selection, displays success/error messages, and navigates to the bookings page after successful submission.",
+  "frontend/src/components/organizer/EventPhotoUpload.tsx": "Event photo upload component with file validation, thumbnail previews, upload progress tracking, existing photos display with delete buttons, and confirmation dialog for deletion using blob-storage ExternalBlob.",
+  "frontend/src/components/organizer/EventPhotoGallery.tsx": "Event photo gallery component displaying photos in responsive grid with lightbox modal, keyboard navigation (arrow keys and Escape), and empty state message."
 }

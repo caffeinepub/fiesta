@@ -1,43 +1,83 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix missing navigation menu items after Version 20 deployment",
+  "title": "Add persistent event photo storage and management for organizers",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Restore all navigation menu items in the Header component that were visible before Version 20, ensuring authenticated users see 'My Events', 'Find Organizers', 'My Bookings', and 'Organizer Dashboard' links alongside the logout button",
+      "id": "REQ-5",
+      "summary": "Add event photo upload interface to the OrganizerDashboard page with file input supporting JPG, PNG, and WebP formats, upload progress indicator, and preview of uploaded images",
       "acceptanceCriteria": [
-        "All navigation links ('My Events', 'Find Organizers', 'My Bookings', 'Organizer Dashboard') are visible in the desktop menu for authenticated users",
-        "Mobile menu hamburger displays all navigation options when opened",
-        "Logout button remains functional alongside other menu items",
-        "Navigation menu appearance matches the state before Version 20 deployment"
+        "File input accepts image files (JPG, PNG, WebP)",
+        "Shows upload progress during file transfer",
+        "Displays preview thumbnails of uploaded images",
+        "Upload interface is accessible from organizer dashboard"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/layout/Header.tsx",
+          "path": "frontend/src/components/organizer/EventPhotoUpload.tsx",
+          "operation": "create",
+          "description": "Create event photo upload component following the PortfolioUpload.tsx pattern. Use the blob-storage component's ExternalBlob.fromBytes() for file conversion and withUploadProgress() for progress tracking. Validate file types (JPG, PNG, WebP) and size limits (5MB max). Display upload progress indicator and preview thumbnails of uploaded images. Verify the blob-storage component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/OrganizerDashboard.tsx",
           "operation": "modify",
-          "description": "Review the conditional rendering logic for navigation menu items in both desktop and mobile views. Ensure that when a user is authenticated (identity is truthy), all navigation links ('My Events', 'Find Organizers', 'My Bookings', 'Organizer Dashboard') are rendered alongside the LoginButton. Check that no CSS classes are hiding these links and that the mobile menu (if using a hamburger toggle) includes all navigation items when opened. Restore any menu items that were accidentally removed or conditionally hidden during Version 20 deployment."
+          "description": "Wire the EventPhotoUpload component into the organizer dashboard layout. Add a new section below the portfolio gallery section labeled 'Event Photos' that includes the EventPhotoUpload component. Ensure proper spacing and layout consistency with existing dashboard sections."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Verify that the navigation menu conditional rendering logic correctly handles authenticated vs unauthenticated states without hiding menu items inappropriately",
+      "id": "REQ-6",
+      "summary": "Create an event photo gallery component that displays all uploaded event photos in a grid layout with full-size lightbox view and navigation controls",
       "acceptanceCriteria": [
-        "Unauthenticated users see appropriate landing page navigation",
-        "Authenticated users see full navigation menu with all role-appropriate links",
-        "No CSS or styling rules are hiding navigation items unintentionally"
+        "Gallery displays all event photos uploaded by the organizer",
+        "Grid layout with responsive design",
+        "Clicking photo opens full-size lightbox modal",
+        "Lightbox includes navigation controls to browse photos"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/layout/Header.tsx",
-          "operation": "modify",
-          "description": "Audit the authentication state checks and ensure that the conditional rendering for authenticated vs unauthenticated users is correct. Verify that unauthenticated users see the landing page navigation (e.g., logo, login button) and authenticated users see the full navigation menu with all role-appropriate links. Check that no inline styles, CSS classes, or display properties are unintentionally hiding navigation items. Test that the useInternetIdentity hook's identity value is being used correctly to determine visibility of menu items."
+          "path": "frontend/src/components/organizer/EventPhotoGallery.tsx",
+          "operation": "create",
+          "description": "Create event photo gallery component following the PortfolioGallery.tsx pattern. Display photos in a responsive grid layout using ExternalBlob.getDirectURL() for image rendering. Implement lightbox modal with full-size image view and keyboard navigation (arrow keys, escape). Use the blob-storage component for image display. Verify the blob-storage component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/pages/OrganizerDashboard.tsx",
           "operation": "modify",
-          "description": "Review global CSS rules and custom styles to ensure no rules are unintentionally hiding navigation menu items. Check for any display:none, visibility:hidden, or opacity:0 rules that might be affecting navigation links. Verify that responsive breakpoint styles for mobile and desktop menus are not causing navigation items to disappear unexpectedly."
+          "description": "Wire the EventPhotoGallery component into the organizer dashboard layout. Add the gallery component to the 'Event Photos' section below the EventPhotoUpload component. Ensure the gallery refreshes when new photos are uploaded."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Add delete buttons to each event photo in the gallery that trigger deleteEventPhoto backend call with confirmation dialog before deletion",
+      "acceptanceCriteria": [
+        "Each photo has a visible delete button",
+        "Confirmation dialog appears before deletion",
+        "Successfully deleted photos are removed from gallery immediately",
+        "Error handling for failed deletions with user feedback"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/organizer/EventPhotoGallery.tsx",
+          "operation": "modify",
+          "description": "Add delete functionality to each photo in the gallery. Display a delete button overlay on hover for each photo. Implement confirmation dialog using native confirm() or a modal component. Call the useDeleteEventPhoto hook on confirmation. Handle success by displaying toast notification and removing the photo from the gallery. Handle errors with toast error messages."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Create React Query hooks for event photo operations: useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto with proper cache invalidation",
+      "acceptanceCriteria": [
+        "Upload hook handles file to blob conversion and backend upload",
+        "Get photos hook fetches and caches event photos from backend",
+        "Delete hook invalidates cache after successful deletion",
+        "All hooks include loading and error states"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add three new React Query hooks to the existing hooks file: useUploadEventPhoto (mutation hook that accepts ExternalBlob, contentType, and filename parameters, calls actor.uploadEventPhoto, and invalidates 'eventPhotos' query on success), useGetEventPhotos (query hook that fetches event photos from actor.getEventPhotos with queryKey ['eventPhotos']), and useDeleteEventPhoto (mutation hook that accepts photoId, calls actor.deleteEventPhoto, and invalidates 'eventPhotos' query on success). Follow the existing hook patterns in the file for consistency. All hooks should include proper TypeScript types, loading states, and error handling."
         }
       ]
     }

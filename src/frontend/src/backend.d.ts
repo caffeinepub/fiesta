@@ -7,6 +7,13 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export class ExternalBlob {
+    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
+    getDirectURL(): string;
+    static fromURL(url: string): ExternalBlob;
+    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
+    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+}
 export interface Review {
     id: bigint;
     eventId: bigint;
@@ -53,6 +60,14 @@ export interface Booking {
     bookingDate: Time;
     guestId: Principal;
 }
+export interface EventPhoto {
+    id: bigint;
+    contentType: string;
+    owner: Principal;
+    blob: ExternalBlob;
+    filename: string;
+    uploadedAt: Time;
+}
 export interface UserProfile {
     createdAt: Time;
     role: UserRole;
@@ -95,6 +110,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createBooking(eventId: bigint, organizerId: Principal): Promise<bigint>;
     createEvent(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle, contact_number: string, date: Time): Promise<bigint>;
+    deleteEventPhoto(photoId: bigint): Promise<boolean>;
     deletePortfolioImage(filename: string): Promise<boolean>;
     filterOrganizers(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle): Promise<Array<OrganizerProfile>>;
     getAllBookings(): Promise<Array<Booking>>;
@@ -108,6 +124,7 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getEvent(eventId: bigint): Promise<Event>;
     getEventBookings(eventId: bigint): Promise<Array<Booking>>;
+    getEventPhotos(): Promise<Array<EventPhoto>>;
     getEventPortfolioImages(eventId: bigint): Promise<Array<PortfolioImage>>;
     getEventReviews(eventId: bigint): Promise<Array<Review>>;
     getFreeOrganizers(startTime: bigint, endTime: bigint): Promise<Array<OrganizerProfile>>;
@@ -129,4 +146,5 @@ export interface backendInterface {
     saveOrganizerProfile(profileData: OrganizerProfile): Promise<void>;
     submitReview(organizerId: Principal, rating: bigint, comment: string, eventId: bigint): Promise<void>;
     updateBookingStatus(bookingId: bigint, status: BookingStatus): Promise<void>;
+    uploadEventPhoto(image: ExternalBlob, contentType: string, filename: string): Promise<bigint>;
 }

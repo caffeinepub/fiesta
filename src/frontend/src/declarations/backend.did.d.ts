@@ -34,6 +34,14 @@ export interface Event {
   'numberOfGuests' : bigint,
   'eventType' : EventType,
 }
+export interface EventPhoto {
+  'id' : bigint,
+  'contentType' : string,
+  'owner' : Principal,
+  'blob' : ExternalBlob,
+  'filename' : string,
+  'uploadedAt' : Time,
+}
 export type EventStyle = { 'couple' : null } |
   { 'friends' : null } |
   { 'corporate' : null } |
@@ -42,6 +50,7 @@ export type EventType = { 'anniversary' : null } |
   { 'wedding' : null } |
   { 'birthday' : null } |
   { 'corporate' : null };
+export type ExternalBlob = Uint8Array;
 export type LocationType = { 'destination' : null } |
   { 'home' : null };
 export interface OrganizerProfile {
@@ -112,6 +121,7 @@ export interface _SERVICE {
     [EventType, LocationType, bigint, EventStyle, string, Time],
     bigint
   >,
+  'deleteEventPhoto' : ActorMethod<[bigint], boolean>,
   'deletePortfolioImage' : ActorMethod<[string], boolean>,
   'filterOrganizers' : ActorMethod<
     [EventType, LocationType, bigint, EventStyle],
@@ -128,6 +138,7 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getEvent' : ActorMethod<[bigint], Event>,
   'getEventBookings' : ActorMethod<[bigint], Array<Booking>>,
+  'getEventPhotos' : ActorMethod<[], Array<EventPhoto>>,
   'getEventPortfolioImages' : ActorMethod<[bigint], Array<PortfolioImage>>,
   'getEventReviews' : ActorMethod<[bigint], Array<Review>>,
   'getFreeOrganizers' : ActorMethod<[bigint, bigint], Array<OrganizerProfile>>,
@@ -152,6 +163,7 @@ export interface _SERVICE {
   'saveOrganizerProfile' : ActorMethod<[OrganizerProfile], undefined>,
   'submitReview' : ActorMethod<[Principal, bigint, string, bigint], undefined>,
   'updateBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
+  'uploadEventPhoto' : ActorMethod<[ExternalBlob, string, string], bigint>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

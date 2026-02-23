@@ -1,12 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Restore missing navigation menu items in the Header component that disappeared after Version 20 deployment.
+**Goal:** Add persistent event photo storage and management capabilities for organizers, allowing them to upload, view, and delete event photos that persist across sessions.
 
 **Planned changes:**
-- Fix the Header component to display all navigation links ('My Events', 'Find Organizers', 'My Bookings', 'Organizer Dashboard') for authenticated users
-- Verify conditional rendering logic correctly shows menu items based on authentication state
-- Ensure mobile hamburger menu displays all navigation options
-- Confirm no CSS rules are unintentionally hiding navigation items
+- Add stable storage for event photos in the backend with organizer ownership tracking
+- Implement backend methods for uploading, retrieving, and deleting event photos with proper authorization
+- Add event photo upload interface to the OrganizerDashboard with file input and progress indicator
+- Create an event photo gallery component displaying photos in a grid layout with full-size lightbox view
+- Add delete functionality with confirmation dialog for each photo
+- Create React Query hooks for event photo operations with proper cache management
 
-**User-visible outcome:** Authenticated users will see the complete navigation menu with all expected links (My Events, Find Organizers, My Bookings, Organizer Dashboard) alongside the logout button, restoring the navigation experience from before Version 20.
+**User-visible outcome:** Organizers can upload event photos from their dashboard, view them in a persistent gallery that survives browser sessions and tab closures, and delete photos with a confirmation dialog. All photos are stored permanently until explicitly deleted by the organizer.

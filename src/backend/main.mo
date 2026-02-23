@@ -10,14 +10,15 @@ import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 
-
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
 // with-migration is required for persistent state changes
 
+(with migration = Migration.run)
 actor {
   // Initialize authorization system state and mixin
   let accessControlState = AccessControl.initState();
@@ -27,6 +28,7 @@ actor {
   // Persistent state
   var eventIdCounter = 0;
   var bookingIdCounter = 0;
+  var photoIdCounter = 0;
 
   // Data Types
   public type UserProfile = {
@@ -127,6 +129,15 @@ actor {
     totalEventCount : ?Nat;
   };
 
+  public type EventPhoto = {
+    id : Nat;
+    owner : Principal;
+    blob : Storage.ExternalBlob;
+    contentType : Text;
+    filename : Text;
+    uploadedAt : Time.Time;
+  };
+
   module OrganizerProfile {
     public func compare(a : OrganizerProfile, b : OrganizerProfile) : Order.Order {
       Text.compare(a.companyName, b.companyName);
@@ -140,6 +151,7 @@ actor {
   let organizers = Map.empty<Principal, OrganizerProfile>();
   let bookings = Map.empty<Nat, Booking>();
   let reviews = Map.empty<Nat, Review>();
+  let eventPhotos = Map.empty<Nat, EventPhoto>();
 
   // User Profile Management (Required by frontend)
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -792,5 +804,88 @@ actor {
     bookings.add(bookingIdCounter, booking);
     bookingIdCounter += 1;
     booking.id;
+  };
+
+  // ------------------ New Functionality: Event Photo Storage ------------------
+
+  // Upload Event Photo - Only the organizer can upload their own photos
+  public shared ({ caller }) func uploadEventPhoto(image : Storage.ExternalBlob, contentType : Text, filename : Text) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can upload event photos");
+    };
+
+    // Verify caller has an organizer profile
+    let organizer = switch (organizers.get(caller)) {
+      case (null) {
+        Runtime.trap("Unauthorized: Only organizers can upload event photos. Create an organizer profile first.");
+      };
+      case (?_) {
+        // Only check for existence
+        true;
+      };
+    };
+
+    let photoId = photoIdCounter;
+    photoIdCounter += 1;
+
+    let eventPhoto : EventPhoto = {
+      id = photoId;
+      owner = caller;
+      blob = image;
+      contentType;
+      filename;
+      uploadedAt = Time.now();
+    };
+
+    // Save Photo to Map
+    eventPhotos.add(photoId, eventPhoto);
+
+    photoId;
+  };
+
+  // Get Event Photos for Organizer - Only the organizer can retrieve their own photos
+  public query ({ caller }) func getEventPhotos() : async [EventPhoto] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view event photos");
+    };
+
+    // Verify caller has an organizer profile
+    let _ = switch (organizers.get(caller)) {
+      case (null) {
+        Runtime.trap("Organizer profile not found.");
+      };
+      case (?_) {
+        // Only check for existence
+        true;
+      };
+    };
+
+    let filteredPhotos = eventPhotos.values().toArray().filter(
+      func(photo) {
+        photo.owner == caller;
+      }
+    );
+
+    filteredPhotos;
+  };
+
+  // Delete Event Photo - Only the organizer can delete their own photos
+  public shared ({ caller }) func deleteEventPhoto(photoId : Nat) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can delete event photos");
+    };
+
+    switch (eventPhotos.get(photoId)) {
+      case (null) {
+        false;
+      };
+      case (?photo) {
+        if (photo.owner != caller) {
+          Runtime.trap("Unauthorized: Only the photo owner can delete");
+        };
+        eventPhotos.remove(photoId);
+        true;
+      };
+    };
   };
 };

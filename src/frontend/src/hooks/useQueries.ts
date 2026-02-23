@@ -13,7 +13,8 @@ import type {
   UserProfile,
   UserRole,
   Variant_busy_available,
-  PortfolioImage
+  PortfolioImage,
+  EventPhoto
 } from '../backend';
 import { ExternalBlob } from '../backend';
 import { Principal } from '@dfinity/principal';
@@ -335,6 +336,84 @@ export function useGetOrganizerPortfolioImages(organizerId: Principal) {
       }
     },
     enabled: !!actor && !actorFetching,
+  });
+}
+
+// Event Photo Queries
+export function useUploadEventPhoto() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      if (!actor) throw new Error('Actor not available');
+      if (!identity) throw new Error('User not authenticated');
+
+      // Generate filename: organizerId_timestamp_random.ext
+      const extension = file.name.split('.').pop() || 'jpg';
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(7);
+      const filename = `${identity.getPrincipal().toString()}_event_${timestamp}_${random}.${extension}`;
+
+      // Convert file to bytes
+      const arrayBuffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+
+      // Create ExternalBlob
+      const blob = ExternalBlob.fromBytes(bytes);
+
+      // Upload to backend
+      const photoId = await actor.uploadEventPhoto(blob, file.type, filename);
+
+      return photoId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
+    },
+  });
+}
+
+export function useGetEventPhotos() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<EventPhoto[]>({
+    queryKey: ['eventPhotos', identity?.getPrincipal().toString()],
+    queryFn: async () => {
+      if (!actor || !identity) return [];
+      try {
+        return await actor.getEventPhotos();
+      } catch (error) {
+        console.error('Error fetching event photos:', error);
+        return [];
+      }
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+  });
+}
+
+export function useDeleteEventPhoto() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (photoId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      if (!identity) throw new Error('User not authenticated');
+
+      const result = await actor.deleteEventPhoto(photoId);
+      
+      if (!result) {
+        throw new Error('Failed to delete photo. Photo may not exist or you may not have permission.');
+      }
+
+      return photoId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
+    },
   });
 }
 

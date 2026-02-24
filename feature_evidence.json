@@ -1,0 +1,87 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-event-photo-upload-interface-to-the-organizerdashboard-page-with-file-input-supporting-jpg-png-and-webp-formats-upload-progress-indicator-and-preview-of-uploaded-images",
+      "featureTitle": "Add event photo upload interface to the OrganizerDashboard page with file input supporting JPG, PNG, and WebP formats, upload progress indicator, and preview of uploaded images",
+      "files": [
+        "frontend/src/components/organizer/EventPhotoUpload.tsx",
+        "frontend/src/pages/OrganizerDashboard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-event-photo-gallery-component-that-displays-all-uploaded-event-photos-in-a-grid-layout-with-full-size-lightbox-view-and-navigation-controls",
+      "featureTitle": "Create an event photo gallery component that displays all uploaded event photos in a grid layout with full-size lightbox view and navigation controls",
+      "files": [
+        "frontend/src/components/organizer/EventPhotoGallery.tsx",
+        "frontend/src/pages/OrganizerDashboard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-delete-buttons-to-each-event-photo-in-the-gallery-that-trigger-deleteeventphoto-backend-call-with-confirmation-dialog-before-deletion",
+      "featureTitle": "Add delete buttons to each event photo in the gallery that trigger deleteEventPhoto backend call with confirmation dialog before deletion",
+      "files": [
+        "frontend/src/components/organizer/EventPhotoGallery.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-react-query-hooks-for-event-photo-operations-useuploadeventphoto-usegeteventphotos-and-usedeleteeventphoto-with-proper-cache-invalidation",
+      "featureTitle": "Create React Query hooks for event photo operations: useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto with proper cache invalidation",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

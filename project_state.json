@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Event management app with persistent event photo storage and management functionality for organizers",
+  "architectural_notes": [
+    "Event photos stored in Motoko canister using stable memory for permanent persistence",
+    "Images persist across browser sessions and tab closures",
+    "No size or format restrictions on uploaded images"
+  ],
+  "known_issues": [],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-add-event-photo-upload-interface-to-the-organizerdashboard-page-with-file-input-supporting-jpg-png-and-webp-formats-upload-progress-indicator-and-preview-of-uploaded-images",
+      "title": "Add event photo upload interface to the OrganizerDashboard page with file input supporting JPG, PNG, and WebP formats, upload progress indicator, and preview of uploaded images",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-event-photo-gallery-component-that-displays-all-uploaded-event-photos-in-a-grid-layout-with-full-size-lightbox-view-and-navigation-controls",
+      "title": "Create an event photo gallery component that displays all uploaded event photos in a grid layout with full-size lightbox view and navigation controls",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-delete-buttons-to-each-event-photo-in-the-gallery-that-trigger-deleteeventphoto-backend-call-with-confirmation-dialog-before-deletion",
+      "title": "Add delete buttons to each event photo in the gallery that trigger deleteEventPhoto backend call with confirmation dialog before deletion",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hooks-for-event-photo-operations-useuploadeventphoto-usegeteventphotos-and-usedeleteeventphoto-with-proper-cache-invalidation",
+      "title": "Create React Query hooks for event photo operations: useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto with proper cache invalidation",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Backend storage for event photos using stable memory",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Image upload interface in organizers section",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Gallery view to display uploaded event photos",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Delete functionality for organizers to remove event photos",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add stable storage for event photos in the backend with fields for photo ID, organizer principal, image blob data, content type, filename, and upload timestamp",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Implement backend methods for uploading event photos (uploadEventPhoto) that accepts image blob data, content type, and filename, returning the created photo ID",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Implement backend method for retrieving event photos (getEventPhotos) that returns all photos belonging to the calling organizer with image data and metadata",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Implement backend method for deleting event photos (deleteEventPhoto) that accepts a photo ID and removes it from storage, with authorization check to ensure only the photo owner can delete",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "FIESTA",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

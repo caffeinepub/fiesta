@@ -13,47 +13,48 @@ import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useGetGuestEvents, useCreateBooking } from '../../hooks/useQueries';
+import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 
 interface BookingRequestModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  organizerId: Principal;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  organizerId: string;
   organizerName: string;
 }
 
 export default function BookingRequestModal({
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   organizerId,
   organizerName,
 }: BookingRequestModalProps) {
   const navigate = useNavigate();
+  const { identity } = useInternetIdentity();
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
-  
-  const { data: events = [], isLoading: eventsLoading } = useGetGuestEvents();
+
+  const { data: events = [], isLoading: eventsLoading } = useGetGuestEvents(
+    identity?.getPrincipal().toString()
+  );
   const createBookingMutation = useCreateBooking();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!selectedEventId) {
-      return;
-    }
+
+    if (!selectedEventId) return;
 
     try {
       await createBookingMutation.mutateAsync({
         eventId: BigInt(selectedEventId),
-        organizerId,
+        organizerId: Principal.fromText(organizerId),
       });
-      
+
       setSuccessMessage('Booking request sent successfully!');
-      
-      // Close modal and navigate after a short delay
+
       setTimeout(() => {
-        onClose();
+        onOpenChange(false);
         setSuccessMessage('');
         setSelectedEventId('');
         navigate({ to: '/guest/bookings' });
@@ -68,12 +69,12 @@ export default function BookingRequestModal({
       setSuccessMessage('');
       setSelectedEventId('');
       createBookingMutation.reset();
-      onClose();
+      onOpenChange(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-2xl text-navy">Book {organizerName}</DialogTitle>
@@ -85,9 +86,7 @@ export default function BookingRequestModal({
         {successMessage ? (
           <Alert className="bg-green-50 border-green-200">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              {successMessage}
-            </AlertDescription>
+            <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
           </Alert>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -97,7 +96,8 @@ export default function BookingRequestModal({
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  You don't have any events yet. Please create an event first before booking an organizer.
+                  You don't have any events yet. Please create an event first before booking an
+                  organizer.
                 </AlertDescription>
               </Alert>
             ) : (
@@ -115,7 +115,8 @@ export default function BookingRequestModal({
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-gold" />
                           <span className="capitalize">
-                            {event.eventType} - {event.locationType} ({event.numberOfGuests.toString()} guests)
+                            {event.eventType} - {event.locationType} (
+                            {event.numberOfGuests.toString()} guests)
                           </span>
                         </div>
                       </SelectItem>
@@ -129,7 +130,8 @@ export default function BookingRequestModal({
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  {createBookingMutation.error?.message || 'Failed to create booking. Please try again.'}
+                  {createBookingMutation.error?.message ||
+                    'Failed to create booking. Please try again.'}
                 </AlertDescription>
               </Alert>
             )}
@@ -160,7 +162,9 @@ export default function BookingRequestModal({
                   disabled={!selectedEventId || createBookingMutation.isPending}
                   className="bg-navy hover:bg-navy/90"
                 >
-                  {createBookingMutation.isPending ? 'Sending Request...' : 'Send Booking Request'}
+                  {createBookingMutation.isPending
+                    ? 'Sending Request...'
+                    : 'Send Booking Request'}
                 </Button>
               )}
             </DialogFooter>

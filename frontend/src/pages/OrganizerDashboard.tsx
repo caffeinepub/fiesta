@@ -1,20 +1,22 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetOrganizer } from '../hooks/useQueries';
+import { useGetOrganizer, useGetEventPhotos } from '../hooks/useQueries';
 import OrganizerProfileForm from '../components/organizer/OrganizerProfileForm';
 import OrganizerProfileView from '../components/organizer/OrganizerProfileView';
 import PortfolioUpload from '../components/organizer/PortfolioUpload';
 import PortfolioGallery from '../components/organizer/PortfolioGallery';
 import EventPhotoUpload from '../components/organizer/EventPhotoUpload';
 import EventPhotoGallery from '../components/organizer/EventPhotoGallery';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const { data: organizer, isLoading, isFetched } = useGetOrganizer(identity?.getPrincipal() || null);
+  const principal = identity?.getPrincipal() ?? null;
+  const { data: organizer, isLoading } = useGetOrganizer(principal);
+  const { data: eventPhotos = [] } = useGetEventPhotos();
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -51,16 +53,16 @@ export default function OrganizerDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <OrganizerProfileForm 
+            <OrganizerProfileForm
               existingProfile={organizer || undefined}
               onSuccess={() => {
                 setIsEditing(false);
               }}
             />
             {hasProfile && (
-              <Button 
-                variant="outline" 
-                onClick={() => setIsEditing(false)} 
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(false)}
                 className="mt-4 w-full"
               >
                 Cancel
@@ -80,15 +82,21 @@ export default function OrganizerDashboard() {
           {/* Portfolio Management Section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-navy">Portfolio Management</h2>
-            
-            <PortfolioUpload />
-            
+
+            <PortfolioUpload
+              images={organizer.portfolio_images}
+              organizerId={identity.getPrincipal().toString()}
+            />
+
             <Card className="shadow-soft">
               <CardHeader>
                 <CardTitle className="text-xl text-navy">Your Portfolio</CardTitle>
               </CardHeader>
               <CardContent>
-                <PortfolioGallery organizerId={identity.getPrincipal()} />
+                <PortfolioGallery
+                  images={organizer.portfolio_images}
+                  organizerName={organizer.companyName}
+                />
               </CardContent>
             </Card>
           </div>
@@ -96,15 +104,15 @@ export default function OrganizerDashboard() {
           {/* Event Photos Section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-navy">Event Photos</h2>
-            
-            <EventPhotoUpload />
-            
+
+            <EventPhotoUpload photos={eventPhotos} />
+
             <Card className="shadow-soft">
               <CardHeader>
                 <CardTitle className="text-xl text-navy">Your Event Photos</CardTitle>
               </CardHeader>
               <CardContent>
-                <EventPhotoGallery />
+                <EventPhotoGallery photos={eventPhotos} />
               </CardContent>
             </Card>
           </div>

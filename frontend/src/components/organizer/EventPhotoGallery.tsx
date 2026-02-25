@@ -1,136 +1,143 @@
-import { useState } from 'react';
-import { useGetEventPhotos } from '../../hooks/useQueries';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ZoomIn, X, ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react';
+import type { EventPhoto } from '../../backend';
+import { getEventPhotoSrc } from '../../utils/imageUtils';
 
-export default function EventPhotoGallery() {
-  const { data: photos = [], isLoading } = useGetEventPhotos();
-  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+interface EventPhotoGalleryProps {
+  photos: EventPhoto[];
+}
 
-  const openLightbox = (index: number) => {
-    setSelectedPhotoIndex(index);
-  };
+export default function EventPhotoGallery({ photos }: EventPhotoGalleryProps) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const closeLightbox = () => {
-    setSelectedPhotoIndex(null);
-  };
-
-  const goToPrevious = () => {
-    if (selectedPhotoIndex !== null && selectedPhotoIndex > 0) {
-      setSelectedPhotoIndex(selectedPhotoIndex - 1);
-    }
-  };
-
-  const goToNext = () => {
-    if (selectedPhotoIndex !== null && selectedPhotoIndex < photos.length - 1) {
-      setSelectedPhotoIndex(selectedPhotoIndex + 1);
-    }
-  };
-
-  // Handle keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      goToPrevious();
-    } else if (e.key === 'ArrowRight') {
-      goToNext();
-    } else if (e.key === 'Escape') {
-      closeLightbox();
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Loading event photos...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return;
+      if (e.key === 'ArrowRight') setLightboxIndex(i => (i !== null ? Math.min(i + 1, photos.length - 1) : null));
+      if (e.key === 'ArrowLeft') setLightboxIndex(i => (i !== null ? Math.max(i - 1, 0) : null));
+      if (e.key === 'Escape') setLightboxIndex(null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [lightboxIndex, photos.length]);
 
   if (photos.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-        <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-        <p className="text-gray-600">No event photos yet</p>
-        <p className="text-sm text-gray-500 mt-1">Upload photos to showcase your events</p>
+      <div className="text-center py-8 text-muted-foreground">
+        <ImageIcon className="mx-auto mb-2 h-8 w-8 opacity-40" />
+        <p className="text-sm">No event photos yet</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {photos.map((photo, index) => (
-          <div
-            key={photo.id.toString()}
-            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow"
-            onClick={() => openLightbox(index)}
-          >
-            <img
-              src={photo.blob.getDirectURL()}
-              alt={photo.filename}
-              className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"%3E%3Crect fill="%23f3f4f6" width="300" height="300"/%3E%3Ctext x="150" y="150" font-family="Arial" font-size="20" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3EImage Not Found%3C/text%3E%3C/svg%3E';
-              }}
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity" />
-          </div>
-        ))}
-      </div>
-
-      {/* Lightbox Modal */}
-      <Dialog open={selectedPhotoIndex !== null} onOpenChange={closeLightbox}>
-        <DialogContent className="max-w-4xl" onKeyDown={handleKeyDown}>
-          <DialogHeader>
-            <DialogTitle>
-              Event Photo {selectedPhotoIndex !== null ? selectedPhotoIndex + 1 : ''} of {photos.length}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedPhotoIndex !== null && (
-            <div className="relative">
-              <img
-                src={photos[selectedPhotoIndex].blob.getDirectURL()}
-                alt={photos[selectedPhotoIndex].filename}
-                className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%23f3f4f6" width="800" height="600"/%3E%3Ctext x="400" y="300" font-family="Arial" font-size="24" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3EImage Not Found%3C/text%3E%3C/svg%3E';
-                }}
-              />
-              
-              {/* Navigation Buttons */}
-              <div className="flex justify-between items-center mt-4">
-                <Button
-                  onClick={goToPrevious}
-                  disabled={selectedPhotoIndex === 0}
-                  variant="outline"
-                  size="sm"
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
-                </Button>
-                
-                <span className="text-sm text-gray-600">
-                  {selectedPhotoIndex + 1} / {photos.length}
-                </span>
-                
-                <Button
-                  onClick={goToNext}
-                  disabled={selectedPhotoIndex === photos.length - 1}
-                  variant="outline"
-                  size="sm"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {photos.map((photo, idx) => {
+          const src = getEventPhotoSrc(photo);
+          return (
+            <div
+              key={photo.id.toString()}
+              className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group bg-muted"
+              onClick={() => setLightboxIndex(idx)}
+            >
+              {src ? (
+                <ThumbnailImage src={src} alt={photo.filename} />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                  No Image
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6" />
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          );
+        })}
+      </div>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full bg-navy-900 rounded-xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h3 className="text-white font-semibold">
+                Event Photo {lightboxIndex + 1} of {photos.length}
+              </h3>
+              <button onClick={() => setLightboxIndex(null)} className="text-white hover:text-gold transition-colors">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="relative bg-navy-800 min-h-64 flex items-center justify-center">
+              <LightboxImage
+                src={getEventPhotoSrc(photos[lightboxIndex])}
+                alt={photos[lightboxIndex].filename}
+              />
+            </div>
+            <div className="flex items-center justify-between p-4 border-t border-white/10">
+              <button
+                onClick={() => setLightboxIndex(i => (i !== null ? Math.max(i - 1, 0) : null))}
+                disabled={lightboxIndex === 0}
+                className="flex items-center gap-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5" /> Previous
+              </button>
+              <span className="text-white/50 text-sm">{lightboxIndex + 1} / {photos.length}</span>
+              <button
+                onClick={() => setLightboxIndex(i => (i !== null ? Math.min(i + 1, photos.length - 1) : null))}
+                disabled={lightboxIndex === photos.length - 1}
+                className="flex items-center gap-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                Next <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
+  );
+}
+
+function ThumbnailImage({ src, alt }: { src: string; alt: string }) {
+  const [errored, setErrored] = useState(false);
+
+  if (errored) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+        No Image
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+      onError={() => setErrored(true)}
+    />
+  );
+}
+
+function LightboxImage({ src, alt }: { src: string | null; alt: string }) {
+  const [errored, setErrored] = useState(false);
+
+  if (!src || errored) {
+    return <div className="text-white/50 text-sm p-8">Image Not Found</div>;
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="max-w-full max-h-[70vh] object-contain"
+      onError={() => setErrored(true)}
+    />
   );
 }

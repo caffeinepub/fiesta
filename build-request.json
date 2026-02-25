@@ -1,172 +1,70 @@
 {
   "kind": "build_request",
-  "title": "Add persistent event photo storage and management for organizers",
-  "projectName": "FIESTA",
-  "priority": "normal",
+  "title": "Fix portfolio and event photo image display (Image Not Found)",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add stable storage for event photos in the backend with fields for photo ID, organizer principal, image blob data, content type, filename, and upload timestamp",
-      "target": "backend",
+      "text": "Fix the image rendering pipeline for portfolio photos so that images uploaded by organizers are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the PortfolioGallery and OrganizerCard components. The lightbox dialog must show the actual image instead of the 'Image Not Found' placeholder.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-1"
         ],
         "quotes": [
-          "Event photos, yes persist permanently until deleted by organisers"
+          "Still same issue"
         ]
       },
       "acceptanceCriteria": [
-        "Event photos are stored in stable memory and persist across canister upgrades",
-        "Each photo record includes organizer ownership information",
-        "Photo data includes blob content, MIME type, and metadata"
+        "An organizer can upload a portfolio image and it appears correctly in the portfolio grid (no 'No Image' placeholder shown when an image exists).",
+        "Clicking a portfolio image opens the lightbox and displays the full-size image instead of 'Image Not Found'.",
+        "The image conversion logic correctly handles the Uint8Array/blob data returned from the backend actor and produces a valid src string (base64 data URL or blob object URL).",
+        "If an image genuinely has no data, the placeholder is shown as expected."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Implement backend methods for uploading event photos (uploadEventPhoto) that accepts image blob data, content type, and filename, returning the created photo ID",
-      "target": "backend",
+      "text": "Fix the image rendering pipeline for event photos so that photos uploaded via EventPhotoUpload are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the EventPhotoGallery component and its lightbox dialog.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-1"
         ],
         "quotes": [
-          "Image upload functionality in the organizers section with backend storage"
+          "Still same issue"
         ]
       },
       "acceptanceCriteria": [
-        "Only authenticated organizers can upload photos",
-        "Upload method accepts blob data with content type validation",
-        "Returns unique photo ID upon successful upload"
+        "An organizer can upload an event photo and it appears correctly in the event photo gallery grid.",
+        "Clicking an event photo opens the lightbox and displays the full-size image correctly.",
+        "The same Uint8Array-to-URL conversion utility used for portfolio images is applied consistently to event photos.",
+        "Placeholder is only shown when no image data is present."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Implement backend method for retrieving event photos (getEventPhotos) that returns all photos belonging to the calling organizer with image data and metadata",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Proper persistence using the Internet Computer's stable storage",
-          "Fix for the 'image not found' issue by ensuring images are properly stored and retrieved from the backend"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Returns array of photo objects with blob data and metadata",
-        "Only returns photos owned by the calling organizer",
-        "Images persist across browser sessions and tab closures"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Implement backend method for deleting event photos (deleteEventPhoto) that accepts a photo ID and removes it from storage, with authorization check to ensure only the photo owner can delete",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Delete functionality for organizers to remove images permanently"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Only the organizer who uploaded a photo can delete it",
-        "Photo is permanently removed from stable storage",
-        "Returns success confirmation or error if photo not found"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Add event photo upload interface to the OrganizerDashboard page with file input supporting JPG, PNG, and WebP formats, upload progress indicator, and preview of uploaded images",
+      "text": "Audit and consolidate the image data conversion utility (Uint8Array/blob to base64 data URL or object URL) into a single shared helper function used by PortfolioGallery, PortfolioUpload, EventPhotoGallery, EventPhotoUpload, and OrganizerCard to ensure consistent and correct image rendering across all components.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Upload Interface - Image upload in the organizers section"
+          "msg-1"
         ]
       },
       "acceptanceCriteria": [
-        "File input accepts image files (JPG, PNG, WebP)",
-        "Shows upload progress during file transfer",
-        "Displays preview thumbnails of uploaded images",
-        "Upload interface is accessible from organizer dashboard"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Create an event photo gallery component that displays all uploaded event photos in a grid layout with full-size lightbox view and navigation controls",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Gallery View - Display all uploaded event photos with proper retrieval from backend"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Gallery displays all event photos uploaded by the organizer",
-        "Grid layout with responsive design",
-        "Clicking photo opens full-size lightbox modal",
-        "Lightbox includes navigation controls to browse photos"
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Add delete buttons to each event photo in the gallery that trigger deleteEventPhoto backend call with confirmation dialog before deletion",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Delete Feature - Allow organizers to remove images permanently"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Each photo has a visible delete button",
-        "Confirmation dialog appears before deletion",
-        "Successfully deleted photos are removed from gallery immediately",
-        "Error handling for failed deletions with user feedback"
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Create React Query hooks for event photo operations: useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto with proper cache invalidation",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Ensure images persist across browser sessions and tab closures"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Upload hook handles file to blob conversion and backend upload",
-        "Get photos hook fetches and caches event photos from backend",
-        "Delete hook invalidates cache after successful deletion",
-        "All hooks include loading and error states"
+        "A single utility function handles blob/Uint8Array-to-URL conversion.",
+        "All image-displaying components import and use this shared utility.",
+        "No component independently re-implements its own conversion logic."
       ]
     }
   ],
   "constraints": [
-    "Use existing backend single-actor architecture in backend/main.mo",
-    "Follow existing PortfolioUpload.tsx and PortfolioGallery.tsx patterns for event photo components",
-    "Integrate event photo upload and gallery into existing OrganizerDashboard page layout",
-    "Use existing authentication system via useInternetIdentity hook",
-    "Follow existing file naming conventions and project structure"
+    "Do not modify backend/main.mo data storage format — the fix must be entirely on the frontend image conversion layer.",
+    "Do not edit files listed in frontend.immutablePaths."
   ],
   "nonGoals": [
-    "Modifying portfolio image functionality",
-    "Adding event photo upload for guests or admins",
-    "Implementing image editing or filtering features",
-    "Adding size or format restrictions on uploads",
-    "Creating separate event photo management page outside organizer dashboard"
+    "Changing the backend blob storage mechanism or data model.",
+    "Adding new image upload features or changing upload limits.",
+    "Redesigning the gallery or lightbox UI layout."
   ],
   "imageRequirements": {
     "required": [],

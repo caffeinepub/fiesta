@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-event-photo-upload-interface-to-the-organizerdashboard-page-with-file-input-supporting-jpg-png-and-webp-formats-upload-progress-indicator-and-preview-of-uploaded-images",
-      "featureTitle": "Add event photo upload interface to the OrganizerDashboard page with file input supporting JPG, PNG, and WebP formats, upload progress indicator, and preview of uploaded images",
+      "featureId": "feature-fix-the-image-rendering-pipeline-for-portfolio-photos-so-that-images-uploaded-by-organizers-are-correctly-converted-from-the-backend-blob-uint8array-format-to-a-displayable-base64-data-url-or-object-url-in-the-portfoliogallery-and-organizercard-components-the-lightbox-dialog-must-show-the-actual-image-instead-of-the-image-not-found-placeholder",
+      "featureTitle": "Fix the image rendering pipeline for portfolio photos so that images uploaded by organizers are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the PortfolioGallery and OrganizerCard components. The lightbox dialog must show the actual image instead of the 'Image Not Found' placeholder.",
       "files": [
-        "frontend/src/components/organizer/EventPhotoUpload.tsx",
-        "frontend/src/pages/OrganizerDashboard.tsx"
+        "frontend/src/components/organizer/OrganizerCard.tsx",
+        "frontend/src/components/organizer/PortfolioGallery.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,34 +18,13 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-5"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-an-event-photo-gallery-component-that-displays-all-uploaded-event-photos-in-a-grid-layout-with-full-size-lightbox-view-and-navigation-controls",
-      "featureTitle": "Create an event photo gallery component that displays all uploaded event photos in a grid layout with full-size lightbox view and navigation controls",
-      "files": [
-        "frontend/src/components/organizer/EventPhotoGallery.tsx",
-        "frontend/src/pages/OrganizerDashboard.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-delete-buttons-to-each-event-photo-in-the-gallery-that-trigger-deleteeventphoto-backend-call-with-confirmation-dialog-before-deletion",
-      "featureTitle": "Add delete buttons to each event photo in the gallery that trigger deleteEventPhoto backend call with confirmation dialog before deletion",
+      "featureId": "feature-fix-the-image-rendering-pipeline-for-event-photos-so-that-photos-uploaded-via-eventphotoupload-are-correctly-converted-from-the-backend-blob-uint8array-format-to-a-displayable-base64-data-url-or-object-url-in-the-eventphotogallery-component-and-its-lightbox-dialog",
+      "featureTitle": "Fix the image rendering pipeline for event photos so that photos uploaded via EventPhotoUpload are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the EventPhotoGallery component and its lightbox dialog.",
       "files": [
         "frontend/src/components/organizer/EventPhotoGallery.tsx"
       ],
@@ -59,15 +38,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-7"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-react-query-hooks-for-event-photo-operations-useuploadeventphoto-usegeteventphotos-and-usedeleteeventphoto-with-proper-cache-invalidation",
-      "featureTitle": "Create React Query hooks for event photo operations: useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto with proper cache invalidation",
+      "featureId": "feature-audit-and-consolidate-the-image-data-conversion-utility-uint8array-blob-to-base64-data-url-or-object-url-into-a-single-shared-helper-function-used-by-portfoliogallery-portfolioupload-eventphotogallery-eventphotoupload-and-organizercard-to-ensure-consistent-and-correct-image-rendering-across-all-components",
+      "featureTitle": "Audit and consolidate the image data conversion utility (Uint8Array/blob to base64 data URL or object URL) into a single shared helper function used by PortfolioGallery, PortfolioUpload, EventPhotoGallery, EventPhotoUpload, and OrganizerCard to ensure consistent and correct image rendering across all components.",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/components/organizer/EventPhotoUpload.tsx",
+        "frontend/src/components/organizer/PortfolioUpload.tsx",
+        "frontend/src/utils/imageUtils.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -79,7 +60,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-8"
+        "REQ-3"
       ],
       "confidence": "high"
     }

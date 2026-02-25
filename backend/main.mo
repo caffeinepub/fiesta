@@ -13,12 +13,11 @@ import Principal "mo:core/Principal";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
+
 import Storage "blob-storage/Storage";
-import Migration "migration";
 
 // with-migration is required for persistent state changes
 
-(with migration = Migration.run)
 actor {
   // Initialize authorization system state and mixin
   let accessControlState = AccessControl.initState();

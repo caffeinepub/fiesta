@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSaveOrganizerProfile } from '../../hooks/useQueries';
+import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -13,10 +14,16 @@ interface OrganizerProfileFormProps {
   onSuccess?: () => void;
 }
 
-export default function OrganizerProfileForm({ existingProfile, onSuccess }: OrganizerProfileFormProps) {
+export default function OrganizerProfileForm({
+  existingProfile,
+  onSuccess,
+}: OrganizerProfileFormProps) {
+  const { identity } = useInternetIdentity();
   const [companyName, setCompanyName] = useState(existingProfile?.companyName || '');
   const [contactNumber, setContactNumber] = useState(existingProfile?.contactNumber || '');
-  const [experienceYears, setExperienceYears] = useState(existingProfile?.experienceYears.toString() || '');
+  const [experienceYears, setExperienceYears] = useState(
+    existingProfile?.experienceYears.toString() || ''
+  );
   const [pricingRange, setPricingRange] = useState(existingProfile?.pricingRange || '');
   const [description, setDescription] = useState(existingProfile?.description || '');
   const [availabilityStatus, setAvailabilityStatus] = useState<Variant_busy_available>(
@@ -27,6 +34,11 @@ export default function OrganizerProfileForm({ existingProfile, onSuccess }: Org
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!identity) {
+      toast.error('You must be logged in to save a profile');
+      return;
+    }
 
     const experience = parseInt(experienceYears);
     if (isNaN(experience) || experience < 0) {
@@ -50,14 +62,21 @@ export default function OrganizerProfileForm({ existingProfile, onSuccess }: Org
     }
 
     try {
-      await saveProfile.mutateAsync({
+      const profileData: OrganizerProfile = {
         companyName: companyName.trim(),
         contactNumber: contactNumber.trim(),
         experienceYears: BigInt(experience),
         pricingRange: pricingRange.trim(),
         description: description.trim(),
         availabilityStatus,
-      });
+        // Preserve existing values or use defaults
+        totalReviews: existingProfile?.totalReviews ?? BigInt(0),
+        userId: existingProfile?.userId ?? identity.getPrincipal(),
+        createdAt: existingProfile?.createdAt ?? BigInt(Date.now() * 1_000_000),
+        portfolio_images: existingProfile?.portfolio_images ?? [],
+      };
+
+      await saveProfile.mutateAsync(profileData);
       toast.success('Profile saved successfully!');
       if (onSuccess) onSuccess();
     } catch (err: any) {
@@ -95,10 +114,10 @@ export default function OrganizerProfileForm({ existingProfile, onSuccess }: Org
         <Input
           id="experienceYears"
           type="number"
+          min="0"
           value={experienceYears}
           onChange={(e) => setExperienceYears(e.target.value)}
           placeholder="5"
-          min="0"
           required
         />
       </div>
@@ -109,25 +128,9 @@ export default function OrganizerProfileForm({ existingProfile, onSuccess }: Org
           id="pricingRange"
           value={pricingRange}
           onChange={(e) => setPricingRange(e.target.value)}
-          placeholder="$1,000 - $5,000"
+          placeholder="$500 - $2000"
           required
         />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="availabilityStatus">Availability Status</Label>
-        <Select 
-          value={availabilityStatus} 
-          onValueChange={(value) => setAvailabilityStatus(value as Variant_busy_available)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={Variant_busy_available.available}>Available</SelectItem>
-            <SelectItem value={Variant_busy_available.busy}>Busy</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="space-y-2">
@@ -141,7 +144,27 @@ export default function OrganizerProfileForm({ existingProfile, onSuccess }: Org
         />
       </div>
 
-      <Button type="submit" className="w-full" disabled={saveProfile.isPending}>
+      <div className="space-y-2">
+        <Label htmlFor="availability">Availability Status</Label>
+        <Select
+          value={availabilityStatus}
+          onValueChange={(val) => setAvailabilityStatus(val as Variant_busy_available)}
+        >
+          <SelectTrigger id="availability">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={Variant_busy_available.available}>Available</SelectItem>
+            <SelectItem value={Variant_busy_available.busy}>Busy</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button
+        type="submit"
+        disabled={saveProfile.isPending}
+        className="w-full bg-navy hover:bg-navy/90 text-white"
+      >
         {saveProfile.isPending ? 'Saving...' : 'Save Profile'}
       </Button>
     </form>

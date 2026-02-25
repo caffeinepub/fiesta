@@ -1,162 +1,178 @@
-import { useState } from 'react';
-import type { OrganizerProfile as Organizer } from '../../backend';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import React, { useState } from 'react';
+import { Clock, DollarSign, Users, Phone, ZoomIn, Star } from 'lucide-react';
+import type { OrganizerProfile, PortfolioImage } from '../../backend';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, Phone, Briefcase, DollarSign, Image as ImageIcon, Calendar, ZoomIn } from 'lucide-react';
-import { useGetOrganizerPortfolioImages } from '../../hooks/useQueries';
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import BookingRequestModal from '../booking/BookingRequestModal';
+import { getPortfolioImageSrc } from '../../utils/imageUtils';
 
 interface OrganizerCardProps {
-  organizer: Organizer;
+  organizer: OrganizerProfile;
   isSelected?: boolean;
+  onSelect?: (selected: boolean) => void;
+  // Legacy prop from GuestOrganizerBrowsing — kept for compatibility
   onToggleSelection?: (organizerId: string) => void;
-  onImageClick?: (imageSrc: string, allImages: string[], index: number) => void;
+  onImageClick?: (images: PortfolioImage[], index: number) => void;
 }
 
-export default function OrganizerCard({ organizer, isSelected = false, onToggleSelection, onImageClick }: OrganizerCardProps) {
-  const { identity } = useInternetIdentity();
-  const { data: portfolioImages = [] } = useGetOrganizerPortfolioImages(organizer.userId);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  
-  const rating = Number(organizer.totalReviews) > 0 
-    ? (Math.random() * 2 + 3).toFixed(1) 
-    : 'N/A';
+export default function OrganizerCard({
+  organizer,
+  isSelected,
+  onSelect,
+  onToggleSelection,
+  onImageClick,
+}: OrganizerCardProps) {
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
-  const previewImages = portfolioImages.slice(0, 3);
-  const isAuthenticated = !!identity;
-  const showSelectionMode = onToggleSelection !== undefined;
+  const previewImages = organizer.portfolio_images.slice(0, 3);
 
-  // Helper function to get image source
-  const getImageSrc = (filename: string): string => {
-    // First check if it's in sessionStorage (recently uploaded)
-    const cachedUrl = sessionStorage.getItem(`portfolio_${filename}`);
-    if (cachedUrl) {
-      return cachedUrl;
-    }
-    // Otherwise use the static assets path
-    return `/assets/portfolios/${filename}`;
-  };
-
-  // Get all image sources for lightbox navigation
-  const allImageSources = portfolioImages.map(img => getImageSrc(img.filename));
-
-  const handleImageClick = (index: number) => {
-    if (onImageClick && allImageSources.length > 0) {
-      onImageClick(allImageSources[index], allImageSources, index);
-    }
+  const handleSelectChange = (checked: boolean) => {
+    if (onSelect) onSelect(checked);
+    if (onToggleSelection) onToggleSelection(organizer.userId.toString());
   };
 
   return (
-    <>
-      <Card className="shadow-soft hover:shadow-lg transition-shadow relative">
-        {showSelectionMode && (
-          <div className="absolute top-4 right-4 z-10">
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={() => onToggleSelection(organizer.userId.toString())}
-            />
+    <div
+      className={`bg-card border rounded-xl overflow-hidden transition-all duration-200 ${
+        isSelected ? 'ring-2 ring-gold border-gold' : 'border-border hover:border-gold/50'
+      }`}
+    >
+      {/* Portfolio Preview */}
+      <div className="relative h-48 bg-muted overflow-hidden">
+        {previewImages.length > 0 ? (
+          <div
+            className={`grid h-full ${
+              previewImages.length === 1
+                ? 'grid-cols-1'
+                : previewImages.length === 2
+                  ? 'grid-cols-2'
+                  : 'grid-cols-3'
+            } gap-0.5`}
+          >
+            {previewImages.map((image, idx) => {
+              const src = getPortfolioImageSrc(image);
+              return (
+                <div
+                  key={idx}
+                  className="relative overflow-hidden cursor-pointer group bg-muted"
+                  onClick={() => onImageClick?.(organizer.portfolio_images, idx)}
+                >
+                  {src ? (
+                    <ThumbnailImage src={src} alt={`Portfolio ${idx + 1}`} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-medium">
+                      No Image
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                    <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <Users className="mx-auto mb-2 h-8 w-8 opacity-40" />
+              <p className="text-sm">No portfolio images</p>
+            </div>
           </div>
         )}
-        
-        <CardHeader>
-          <CardTitle className="text-xl text-navy pr-8">{organizer.companyName}</CardTitle>
-        </CardHeader>
-        
-        <CardContent className="space-y-3">
-          <div className="flex items-center gap-2 bg-gold/10 p-2 rounded-lg">
-            <Phone className="h-4 w-4 text-gold" />
-            <span className="font-bold text-navy">{organizer.contactNumber}</span>
-          </div>
+        <div className="absolute bottom-2 right-2 text-xs text-white/70 bg-black/50 px-2 py-1 rounded">
+          Click images to view full size
+        </div>
+      </div>
 
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Briefcase className="h-4 w-4" />
-            <span>{organizer.experienceYears.toString()} years experience</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <DollarSign className="h-4 w-4" />
-            <span>{organizer.pricingRange}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-gold fill-gold" />
-            <span className="text-sm font-semibold">{rating}</span>
-            <span className="text-xs text-gray-500">({organizer.totalReviews.toString()} reviews)</span>
-          </div>
-
-          <Badge variant={organizer.availabilityStatus === 'available' ? 'default' : 'secondary'}>
-            {organizer.availabilityStatus === 'available' ? 'Available' : 'Busy'}
-          </Badge>
-
-          {organizer.description && (
-            <p className="text-sm text-gray-600 line-clamp-2">{organizer.description}</p>
-          )}
-
-          {/* Portfolio Preview */}
-          {previewImages.length > 0 && (
-            <div className="pt-3 border-t">
-              <div className="flex items-center gap-2 mb-2">
-                <ImageIcon className="h-4 w-4 text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">Portfolio Preview</span>
-                {portfolioImages.length > 3 && (
-                  <span className="text-xs text-gray-500">+{portfolioImages.length - 3} more</span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {previewImages.map((image, index) => (
-                  <div 
-                    key={`${image.filename}-${index}`} 
-                    className="flex-1 relative group cursor-pointer"
-                    onClick={() => handleImageClick(index)}
-                  >
-                    <img
-                      src={getImageSrc(image.filename)}
-                      alt={`Portfolio ${index + 1}`}
-                      className="w-full h-20 object-cover rounded aspect-square transition-transform group-hover:scale-105"
-                      onError={(e) => {
-                        // Fallback to a placeholder if image fails to load
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect fill="%23f3f4f6" width="100" height="100"/%3E%3Ctext x="50" y="50" font-family="Arial" font-size="14" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
-                      }}
-                    />
-                    {/* Zoom overlay indicator */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all rounded flex items-center justify-center">
-                      <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {onImageClick && (
-                <p className="text-xs text-gray-500 mt-1 text-center">Click images to view full size</p>
-              )}
+      {/* Card Content */}
+      <div className="p-4 space-y-3">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground truncate">{organizer.companyName}</h3>
+            <div className="flex items-center gap-1 mt-0.5">
+              <Phone className="h-3 w-3 text-gold" />
+              <span className="text-sm font-bold text-gold">{organizer.contactNumber}</span>
             </div>
-          )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Badge
+              variant={organizer.availabilityStatus === 'available' ? 'default' : 'secondary'}
+            >
+              {organizer.availabilityStatus === 'available' ? 'Available' : 'Busy'}
+            </Badge>
+            {(onSelect || onToggleSelection) && (
+              <input
+                type="checkbox"
+                checked={!!isSelected}
+                onChange={(e) => handleSelectChange(e.target.checked)}
+                className="h-4 w-4 accent-gold"
+              />
+            )}
+          </div>
+        </div>
 
-          {/* Book Now Button - Always show when authenticated */}
-          {isAuthenticated && (
-            <div className="pt-3 border-t">
-              <Button
-                onClick={() => setIsBookingModalOpen(true)}
-                className="w-full bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold"
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Book Now
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="flex flex-col items-center p-2 bg-muted rounded-lg">
+            <Clock className="h-3 w-3 text-gold mb-1" />
+            <span className="font-semibold">{organizer.experienceYears.toString()}yr</span>
+            <span className="text-muted-foreground">Exp</span>
+          </div>
+          <div className="flex flex-col items-center p-2 bg-muted rounded-lg">
+            <DollarSign className="h-3 w-3 text-gold mb-1" />
+            <span className="font-semibold text-center leading-tight">{organizer.pricingRange}</span>
+            <span className="text-muted-foreground">Price</span>
+          </div>
+          <div className="flex flex-col items-center p-2 bg-muted rounded-lg">
+            <Star className="h-3 w-3 text-gold mb-1" />
+            <span className="font-semibold">{organizer.totalReviews.toString()}</span>
+            <span className="text-muted-foreground">Reviews</span>
+          </div>
+        </div>
 
-      {/* Booking Request Modal */}
+        {/* Description */}
+        {organizer.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2">{organizer.description}</p>
+        )}
+
+        {/* Book Now Button */}
+        <Button
+          className="w-full bg-navy text-white hover:bg-navy/90"
+          onClick={() => setBookingModalOpen(true)}
+        >
+          <Clock className="h-4 w-4 mr-2" />
+          Book Now
+        </Button>
+      </div>
+
       <BookingRequestModal
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-        organizerId={organizer.userId}
+        open={bookingModalOpen}
+        onOpenChange={setBookingModalOpen}
+        organizerId={organizer.userId.toString()}
         organizerName={organizer.companyName}
       />
-    </>
+    </div>
+  );
+}
+
+function ThumbnailImage({ src, alt }: { src: string; alt: string }) {
+  const [errored, setErrored] = useState(false);
+
+  if (errored) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-medium">
+        No Image
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+      onError={() => setErrored(true)}
+    />
   );
 }

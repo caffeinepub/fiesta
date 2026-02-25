@@ -3,7 +3,16 @@ import { useUpdateBookingStatus, useGetEvent } from '../../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Calendar, CheckCircle, XCircle, Phone, MapPin, Users, Sparkles, CalendarDays } from 'lucide-react';
+import {
+  Calendar,
+  CheckCircle,
+  XCircle,
+  Phone,
+  MapPin,
+  Users,
+  Sparkles,
+  CalendarDays,
+} from 'lucide-react';
 import { BookingStatus } from '../../backend';
 
 interface OrganizerBookingCardProps {
@@ -51,10 +60,10 @@ export default function OrganizerBookingCard({ booking }: OrganizerBookingCardPr
 
   const formatEventDate = (timestamp: bigint) => {
     const date = new Date(Number(timestamp) / 1000000);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
@@ -71,7 +80,9 @@ export default function OrganizerBookingCard({ booking }: OrganizerBookingCardPr
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar className="h-4 w-4" />
-          <span>Requested: {new Date(Number(booking.bookingDate) / 1000000).toLocaleDateString()}</span>
+          <span>
+            Requested: {new Date(Number(booking.bookingDate) / 1000000).toLocaleDateString()}
+          </span>
         </div>
 
         {eventLoading ? (
@@ -79,7 +90,7 @@ export default function OrganizerBookingCard({ booking }: OrganizerBookingCardPr
         ) : event ? (
           <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h4 className="font-semibold text-navy text-sm mb-2">Event Details</h4>
-            
+
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <Calendar className="h-4 w-4 text-gold" />
               <span className="capitalize font-medium">{event.eventType} Event</span>
@@ -107,7 +118,9 @@ export default function OrganizerBookingCard({ booking }: OrganizerBookingCardPr
 
             <div className="flex items-center gap-2 text-sm bg-gold/10 p-3 rounded-md border border-gold/20 -mx-1">
               <Phone className="h-4 w-4 text-gold" />
-              <span className="font-semibold text-navy">Guest Contact: {event.contact_number}</span>
+              <span className="font-semibold text-navy">
+                Guest Contact: {event.contact_number}
+              </span>
             </div>
           </div>
         ) : (
@@ -116,11 +129,7 @@ export default function OrganizerBookingCard({ booking }: OrganizerBookingCardPr
 
         {booking.bookingStatus === 'requested' && (
           <div className="flex gap-2">
-            <Button
-              onClick={handleApprove}
-              disabled={updateStatus.isPending}
-              className="flex-1"
-            >
+            <Button onClick={handleApprove} disabled={updateStatus.isPending} className="flex-1">
               <CheckCircle className="h-4 w-4 mr-2" />
               Approve
             </Button>

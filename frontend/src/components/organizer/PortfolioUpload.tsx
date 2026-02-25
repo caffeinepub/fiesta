@@ -1,280 +1,131 @@
-import { useState, useRef } from 'react';
-import { useAddPortfolioImage, useDeletePortfolioImage, useGetOrganizerPortfolioImages } from '../../hooks/useQueries';
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Upload, X, Image as ImageIcon, Trash2 } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Upload, Trash2, ImageIcon, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAddPortfolioImage, useDeletePortfolioImage } from '../../hooks/useQueries';
+import type { PortfolioImage } from '../../backend';
 import { toast } from 'sonner';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../ui/alert-dialog';
+import { getPortfolioImageSrc } from '../../utils/imageUtils';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+interface PortfolioUploadProps {
+  images: PortfolioImage[];
+  organizerId: string;
+}
 
-export default function PortfolioUpload() {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+export default function PortfolioUpload({ images, organizerId }: PortfolioUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const addPortfolioImage = useAddPortfolioImage();
-  const deletePortfolioImage = useDeletePortfolioImage();
-  const { identity } = useInternetIdentity();
-  const { data: existingImages = [], isLoading: loadingImages } = useGetOrganizerPortfolioImages(
-    identity?.getPrincipal() || null as any
-  );
+  const [uploading, setUploading] = useState(false);
+  const addImage = useAddPortfolioImage();
+  const deleteImage = useDeletePortfolioImage();
 
-  // Helper function to get image source
-  const getImageSrc = (filename: string): string => {
-    // First check if it's in sessionStorage (recently uploaded)
-    const cachedUrl = sessionStorage.getItem(`portfolio_${filename}`);
-    if (cachedUrl) {
-      return cachedUrl;
-    }
-    // Otherwise use the static assets path
-    return `/assets/portfolios/${filename}`;
-  };
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    
-    // Validate files
-    const validFiles: File[] = [];
-    const newPreviewUrls: string[] = [];
-
-    for (const file of files) {
-      // Check file type
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        toast.error(`${file.name} is not a valid image format. Please use JPG, PNG, or WebP.`);
-        continue;
-      }
-
-      // Check file size
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`${file.name} is too large. Maximum size is 5MB.`);
-        continue;
-      }
-
-      validFiles.push(file);
-      newPreviewUrls.push(URL.createObjectURL(file));
-    }
-
-    setSelectedFiles(prev => [...prev, ...validFiles]);
-    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-  };
-
-  const handleRemoveFile = (index: number) => {
-    URL.revokeObjectURL(previewUrls[index]);
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      toast.error('Please select at least one image to upload');
-      return;
-    }
-
+    setUploading(true);
     try {
-      const totalFiles = selectedFiles.length;
-      
-      for (let i = 0; i < totalFiles; i++) {
-        const file = selectedFiles[i];
-        const progress = Math.round(((i + 1) / totalFiles) * 100);
-        setUploadProgress(progress);
-        
-        toast.info(`Uploading ${file.name}... (${i + 1}/${totalFiles})`);
-        await addPortfolioImage.mutateAsync(file);
-      }
-
-      toast.success(`Successfully uploaded ${totalFiles} image${totalFiles > 1 ? 's' : ''}!`);
-      
-      // Clean up
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-      setSelectedFiles([]);
-      setPreviewUrls([]);
-      setUploadProgress(0);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload images. Please try again.');
-      setUploadProgress(0);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      await addImage.mutateAsync({ bytes, filename: file.name });
+      toast.success('Portfolio image uploaded successfully');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const handleDeleteClick = (filename: string) => {
-    setImageToDelete(filename);
-    setDeleteConfirmOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!imageToDelete) return;
-
+  const handleDelete = async (filename: string) => {
     try {
-      await deletePortfolioImage.mutateAsync(imageToDelete);
-      toast.success('Image deleted successfully');
-      setDeleteConfirmOpen(false);
-      setImageToDelete(null);
-    } catch (error: any) {
-      console.error('Delete error:', error);
-      toast.error(error.message || 'Failed to delete image. Please try again.');
+      await deleteImage.mutateAsync(filename);
+      toast.success('Image deleted');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to delete image');
     }
   };
 
   return (
-    <>
-      <Card className="shadow-soft">
-        <CardHeader>
-          <CardTitle className="text-xl text-navy flex items-center gap-2">
-            <ImageIcon className="h-5 w-5" />
-            Manage Portfolio Images
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Existing Images Section */}
-          {existingImages.length > 0 && (
-            <div>
-              <h4 className="font-semibold text-navy mb-3">
-                Current Portfolio ({existingImages.length} image{existingImages.length !== 1 ? 's' : ''})
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {existingImages.map((image, index) => (
-                  <div key={`${image.filename}-${index}`} className="relative group">
-                    <img
-                      src={getImageSrc(image.filename)}
-                      alt={`Portfolio ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"%3E%3Crect fill="%23f3f4f6" width="300" height="300"/%3E%3Ctext x="150" y="150" font-family="Arial" font-size="16" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3EImage Not Found%3C/text%3E%3C/svg%3E';
-                      }}
-                    />
-                    <button
-                      onClick={() => handleDeleteClick(image.filename)}
-                      disabled={deletePortfolioImage.isPending}
-                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                      aria-label="Delete image"
-                    >
-                      {deletePortfolioImage.isPending && imageToDelete === image.filename ? (
-                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-foreground">Portfolio Images</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="border-gold text-gold hover:bg-gold/10"
+        >
+          {uploading ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...</>
+          ) : (
+            <><Upload className="h-4 w-4 mr-2" /> Add Image</>
+          )}
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+      </div>
+
+      {images.length === 0 ? (
+        <div
+          className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-gold/50 transition-colors"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <ImageIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground opacity-40" />
+          <p className="text-sm text-muted-foreground">Click to upload portfolio images</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {images.map((image, idx) => {
+            const src = getPortfolioImageSrc(image);
+            return (
+              <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group bg-muted">
+                {src ? (
+                  <ThumbnailImage src={src} alt={`Portfolio ${idx + 1}`} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                    No Image
                   </div>
-                ))}
+                )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                    onClick={() => handleDelete(image.filename)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
-          {/* Upload New Images Section */}
-          <div>
-            <h4 className="font-semibold text-navy mb-3">Upload New Images</h4>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gold transition-colors">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                multiple
-                onChange={handleFileSelect}
-                className="hidden"
-                id="portfolio-upload"
-              />
-              <label htmlFor="portfolio-upload" className="cursor-pointer">
-                <Upload className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-gray-600 mb-1">
-                  Click to select images or drag and drop
-                </p>
-                <p className="text-xs text-gray-500">
-                  JPG, PNG, or WebP (max 5MB each)
-                </p>
-              </label>
-            </div>
-          </div>
+function ThumbnailImage({ src, alt }: { src: string; alt: string }) {
+  const [errored, setErrored] = useState(false);
 
-          {selectedFiles.length > 0 && (
-            <div>
-              <h4 className="font-semibold text-navy mb-3">
-                Selected Images ({selectedFiles.length})
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {previewUrls.map((url, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={url}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      onClick={() => handleRemoveFile(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      aria-label="Remove image"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                    <p className="text-xs text-gray-600 mt-1 truncate">
-                      {selectedFiles[index].name}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+  if (errored) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+        No Image
+      </div>
+    );
+  }
 
-          {uploadProgress > 0 && uploadProgress < 100 && (
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-gold h-2 rounded-full transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            </div>
-          )}
-
-          <Button
-            onClick={handleUpload}
-            disabled={selectedFiles.length === 0 || addPortfolioImage.isPending}
-            className="w-full"
-          >
-            {addPortfolioImage.isPending 
-              ? `Uploading... ${uploadProgress}%` 
-              : `Upload ${selectedFiles.length} Image${selectedFiles.length !== 1 ? 's' : ''}`}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Portfolio Image</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this image? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setImageToDelete(null)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="w-full h-full object-cover"
+      onError={() => setErrored(true)}
+    />
   );
 }

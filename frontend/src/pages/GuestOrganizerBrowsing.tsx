@@ -1,13 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetAllOrganizers } from '../hooks/useQueries';
 import OrganizerCard from '../components/organizer/OrganizerCard';
 import { Button } from '@/components/ui/button';
-import { Principal } from '@dfinity/principal';
-import type { OrganizerProfile } from '../backend';
-import { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import type { OrganizerProfile, PortfolioImage } from '../backend';
+import { getPortfolioImageSrc } from '../utils/imageUtils';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 export default function GuestOrganizerBrowsing() {
@@ -15,7 +13,10 @@ export default function GuestOrganizerBrowsing() {
   const { identity } = useInternetIdentity();
   const { data: organizers, isLoading } = useGetAllOrganizers();
   const [selectedOrganizers, setSelectedOrganizers] = useState<Set<string>>(new Set());
-  const [lightboxImage, setLightboxImage] = useState<{ src: string; images: string[]; index: number } | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    images: PortfolioImage[];
+    index: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!identity) {
@@ -26,24 +27,16 @@ export default function GuestOrganizerBrowsing() {
   // Keyboard navigation for lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!lightboxImage) return;
-      
-      if (e.key === 'Escape') {
-        setLightboxImage(null);
-      } else if (e.key === 'ArrowLeft') {
-        goToPrevious();
-      } else if (e.key === 'ArrowRight') {
-        goToNext();
-      }
+      if (!lightbox) return;
+      if (e.key === 'Escape') setLightbox(null);
+      else if (e.key === 'ArrowLeft') goToPrevious();
+      else if (e.key === 'ArrowRight') goToNext();
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxImage]);
+  }, [lightbox]);
 
-  if (!identity) {
-    return null;
-  }
+  if (!identity) return null;
 
   const handleToggleSelection = (organizerId: string) => {
     setSelectedOrganizers((prev) => {
@@ -59,41 +52,32 @@ export default function GuestOrganizerBrowsing() {
 
   const handleCompare = () => {
     const selectedIds = Array.from(selectedOrganizers);
-    navigate({ 
+    navigate({
       to: '/guest/organizers/compare',
-      search: { ids: selectedIds }
+      search: { ids: selectedIds },
     });
   };
 
-  const handleImageClick = (imageSrc: string, allImages: string[], index: number) => {
-    setLightboxImage({ src: imageSrc, images: allImages, index });
+  const handleImageClick = (images: PortfolioImage[], index: number) => {
+    setLightbox({ images, index });
   };
 
-  const closeLightbox = () => {
-    setLightboxImage(null);
-  };
+  const closeLightbox = () => setLightbox(null);
 
   const goToPrevious = () => {
-    if (lightboxImage && lightboxImage.index > 0) {
-      const newIndex = lightboxImage.index - 1;
-      setLightboxImage({
-        ...lightboxImage,
-        src: lightboxImage.images[newIndex],
-        index: newIndex,
-      });
+    if (lightbox && lightbox.index > 0) {
+      setLightbox({ ...lightbox, index: lightbox.index - 1 });
     }
   };
 
   const goToNext = () => {
-    if (lightboxImage && lightboxImage.index < lightboxImage.images.length - 1) {
-      const newIndex = lightboxImage.index + 1;
-      setLightboxImage({
-        ...lightboxImage,
-        src: lightboxImage.images[newIndex],
-        index: newIndex,
-      });
+    if (lightbox && lightbox.index < lightbox.images.length - 1) {
+      setLightbox({ ...lightbox, index: lightbox.index + 1 });
     }
   };
+
+  const currentSrc =
+    lightbox ? getPortfolioImageSrc(lightbox.images[lightbox.index]) : null;
 
   return (
     <>
@@ -101,10 +85,12 @@ export default function GuestOrganizerBrowsing() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-4xl font-bold text-navy mb-2">Find Organizers</h1>
-            <p className="text-gray-600">Browse available event organizers and book directly or compare multiple options</p>
+            <p className="text-gray-600">
+              Browse available event organizers and book directly or compare multiple options
+            </p>
           </div>
           {selectedOrganizers.size > 0 && (
-            <Button 
+            <Button
               onClick={handleCompare}
               className="bg-gold hover:bg-gold-dark text-navy font-semibold"
             >
@@ -133,90 +119,74 @@ export default function GuestOrganizerBrowsing() {
       </div>
 
       {/* Lightbox Modal */}
-      <Dialog open={lightboxImage !== null} onOpenChange={closeLightbox}>
-        <DialogContent 
-          className="max-w-5xl w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95 border-none"
-          onPointerDownOutside={closeLightbox}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4"
+          onClick={closeLightbox}
         >
-          {lightboxImage && (
-            <div className="relative w-full h-full flex flex-col">
-              {/* Header */}
-              <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
-                <div className="flex justify-between items-center">
-                  <DialogTitle className="text-white text-lg">
-                    Portfolio Image {lightboxImage.index + 1} of {lightboxImage.images.length}
-                  </DialogTitle>
-                  <button
-                    onClick={closeLightbox}
-                    className="text-white hover:text-gray-300 transition-colors"
-                    aria-label="Close"
-                  >
-                    <X className="h-6 w-6" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Image Container */}
-              <div className="flex-1 flex items-center justify-center p-4 pt-16 pb-20">
-                <img
-                  src={lightboxImage.src}
-                  alt={`Portfolio ${lightboxImage.index + 1}`}
-                  className="max-w-full max-h-full object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%23374151" width="800" height="600"/%3E%3Ctext x="400" y="300" font-family="Arial" font-size="24" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3EImage Not Found%3C/text%3E%3C/svg%3E';
-                  }}
-                />
-              </div>
-
-              {/* Navigation Controls */}
-              <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <div className="flex justify-between items-center max-w-md mx-auto">
-                  <Button
-                    variant="ghost"
-                    onClick={goToPrevious}
-                    disabled={lightboxImage.index === 0}
-                    className="text-white hover:text-white hover:bg-white/20 disabled:opacity-30"
-                  >
-                    <ChevronLeft className="h-5 w-5 mr-1" />
-                    Previous
-                  </Button>
-                  
-                  <span className="text-white text-sm font-medium">
-                    {lightboxImage.index + 1} / {lightboxImage.images.length}
-                  </span>
-                  
-                  <Button
-                    variant="ghost"
-                    onClick={goToNext}
-                    disabled={lightboxImage.index === lightboxImage.images.length - 1}
-                    className="text-white hover:text-white hover:bg-white/20 disabled:opacity-30"
-                  >
-                    Next
-                    <ChevronRight className="h-5 w-5 ml-1" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Left/Right Click Areas for Navigation */}
-              {lightboxImage.index > 0 && (
-                <button
-                  onClick={goToPrevious}
-                  className="absolute left-0 top-0 bottom-0 w-1/4 cursor-pointer hover:bg-white/5 transition-colors"
-                  aria-label="Previous image"
-                />
-              )}
-              {lightboxImage.index < lightboxImage.images.length - 1 && (
-                <button
-                  onClick={goToNext}
-                  className="absolute right-0 top-0 bottom-0 w-1/4 cursor-pointer hover:bg-white/5 transition-colors"
-                  aria-label="Next image"
-                />
-              )}
+          <div
+            className="relative max-w-5xl w-full rounded-xl overflow-hidden bg-black"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h3 className="text-white font-semibold">
+                Portfolio Image {lightbox.index + 1} of {lightbox.images.length}
+              </h3>
+              <button
+                onClick={closeLightbox}
+                className="text-white hover:text-gold transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+            {/* Image */}
+            <div className="relative bg-navy-800 min-h-64 flex items-center justify-center">
+              <LightboxImage src={currentSrc} alt={`Portfolio ${lightbox.index + 1}`} />
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center justify-between p-4 border-t border-white/10">
+              <button
+                onClick={goToPrevious}
+                disabled={lightbox.index === 0}
+                className="flex items-center gap-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5" /> Previous
+              </button>
+              <span className="text-white/50 text-sm">
+                {lightbox.index + 1} / {lightbox.images.length}
+              </span>
+              <button
+                onClick={goToNext}
+                disabled={lightbox.index === lightbox.images.length - 1}
+                className="flex items-center gap-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                Next <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
+  );
+}
+
+function LightboxImage({ src, alt }: { src: string | null; alt: string }) {
+  const [errored, setErrored] = useState(false);
+
+  if (!src || errored) {
+    return <div className="text-white/50 text-sm p-8">Image Not Found</div>;
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="max-w-full max-h-[70vh] object-contain"
+      onError={() => setErrored(true)}
+    />
   );
 }

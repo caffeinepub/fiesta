@@ -1,140 +1,141 @@
-import { useState } from 'react';
-import { useGetOrganizerPortfolioImages } from '../../hooks/useQueries';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
-import type { Principal } from '@dfinity/principal';
+import React, { useState, useEffect } from 'react';
+import { ZoomIn, X, ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react';
+import type { PortfolioImage } from '../../backend';
+import { getPortfolioImageSrc } from '../../utils/imageUtils';
 
 interface PortfolioGalleryProps {
-  organizerId: Principal;
+  images: PortfolioImage[];
+  organizerName?: string;
 }
 
-export default function PortfolioGallery({ organizerId }: PortfolioGalleryProps) {
-  const { data: images = [], isLoading } = useGetOrganizerPortfolioImages(organizerId);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+export default function PortfolioGallery({ images, organizerName }: PortfolioGalleryProps) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Helper function to get image source
-  const getImageSrc = (filename: string): string => {
-    // First check if it's in sessionStorage (recently uploaded)
-    const cachedUrl = sessionStorage.getItem(`portfolio_${filename}`);
-    if (cachedUrl) {
-      return cachedUrl;
-    }
-    // Otherwise use the static assets path
-    return `/assets/portfolios/${filename}`;
-  };
-
-  const openLightbox = (index: number) => {
-    setSelectedImageIndex(index);
-  };
-
-  const closeLightbox = () => {
-    setSelectedImageIndex(null);
-  };
-
-  const goToPrevious = () => {
-    if (selectedImageIndex !== null && selectedImageIndex > 0) {
-      setSelectedImageIndex(selectedImageIndex - 1);
-    }
-  };
-
-  const goToNext = () => {
-    if (selectedImageIndex !== null && selectedImageIndex < images.length - 1) {
-      setSelectedImageIndex(selectedImageIndex + 1);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Loading portfolio...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return;
+      if (e.key === 'ArrowRight') setLightboxIndex(i => (i !== null ? Math.min(i + 1, images.length - 1) : null));
+      if (e.key === 'ArrowLeft') setLightboxIndex(i => (i !== null ? Math.max(i - 1, 0) : null));
+      if (e.key === 'Escape') setLightboxIndex(null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [lightboxIndex, images.length]);
 
   if (images.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-        <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-        <p className="text-gray-600">No portfolio images yet</p>
-        <p className="text-sm text-gray-500 mt-1">Upload images to showcase your work</p>
+      <div className="text-center py-8 text-muted-foreground">
+        <ImageIcon className="mx-auto mb-2 h-8 w-8 opacity-40" />
+        <p className="text-sm">No portfolio images yet</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {images.map((image, index) => (
-          <div
-            key={`${image.filename}-${index}`}
-            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow"
-            onClick={() => openLightbox(index)}
-          >
-            <img
-              src={getImageSrc(image.filename)}
-              alt={`Portfolio ${index + 1}`}
-              className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                // Fallback to a placeholder if image fails to load
-                const target = e.target as HTMLImageElement;
-                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"%3E%3Crect fill="%23f3f4f6" width="300" height="300"/%3E%3Ctext x="150" y="150" font-family="Arial" font-size="20" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3EImage Not Found%3C/text%3E%3C/svg%3E';
-              }}
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity" />
-          </div>
-        ))}
-      </div>
-
-      {/* Lightbox Modal */}
-      <Dialog open={selectedImageIndex !== null} onOpenChange={closeLightbox}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>
-              Portfolio Image {selectedImageIndex !== null ? selectedImageIndex + 1 : ''} of {images.length}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedImageIndex !== null && (
-            <div className="relative">
-              <img
-                src={getImageSrc(images[selectedImageIndex].filename)}
-                alt={`Portfolio ${selectedImageIndex + 1}`}
-                className="w-full max-h-[70vh] object-contain"
-                onError={(e) => {
-                  // Fallback to a placeholder if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%23f3f4f6" width="800" height="600"/%3E%3Ctext x="400" y="300" font-family="Arial" font-size="24" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3EImage Not Found%3C/text%3E%3C/svg%3E';
-                }}
-              />
-              
-              <div className="flex justify-between items-center mt-4">
-                <Button
-                  variant="outline"
-                  onClick={goToPrevious}
-                  disabled={selectedImageIndex === 0}
-                >
-                  <ChevronLeft className="h-4 w-4 mr-2" />
-                  Previous
-                </Button>
-                
-                <span className="text-sm text-gray-600">
-                  {selectedImageIndex + 1} / {images.length}
-                </span>
-                
-                <Button
-                  variant="outline"
-                  onClick={goToNext}
-                  disabled={selectedImageIndex === images.length - 1}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {images.map((image, idx) => {
+          const src = getPortfolioImageSrc(image);
+          return (
+            <div
+              key={idx}
+              className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group bg-muted"
+              onClick={() => setLightboxIndex(idx)}
+            >
+              {src ? (
+                <img
+                  src={src}
+                  alt={`Portfolio ${idx + 1}`}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      const existing = parent.querySelector('.img-placeholder');
+                      if (!existing) {
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'img-placeholder w-full h-full flex items-center justify-center text-muted-foreground text-xs absolute inset-0';
+                        placeholder.textContent = 'No Image';
+                        parent.appendChild(placeholder);
+                      }
+                    }
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                  No Image
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6" />
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          );
+        })}
+      </div>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full bg-navy-900 rounded-xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h3 className="text-white font-semibold">
+                {organizerName ? `${organizerName} — ` : ''}Portfolio Image {lightboxIndex + 1} of {images.length}
+              </h3>
+              <button onClick={() => setLightboxIndex(null)} className="text-white hover:text-gold transition-colors">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="relative bg-navy-800 min-h-64 flex items-center justify-center">
+              <LightboxImage
+                src={getPortfolioImageSrc(images[lightboxIndex])}
+                alt={`Portfolio ${lightboxIndex + 1}`}
+              />
+            </div>
+            <div className="flex items-center justify-between p-4 border-t border-white/10">
+              <button
+                onClick={() => setLightboxIndex(i => (i !== null ? Math.max(i - 1, 0) : null))}
+                disabled={lightboxIndex === 0}
+                className="flex items-center gap-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5" /> Previous
+              </button>
+              <span className="text-white/50 text-sm">{lightboxIndex + 1} / {images.length}</span>
+              <button
+                onClick={() => setLightboxIndex(i => (i !== null ? Math.min(i + 1, images.length - 1) : null))}
+                disabled={lightboxIndex === images.length - 1}
+                className="flex items-center gap-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                Next <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
+  );
+}
+
+function LightboxImage({ src, alt }: { src: string | null; alt: string }) {
+  const [errored, setErrored] = useState(false);
+
+  if (!src || errored) {
+    return <div className="text-white/50 text-sm p-8">Image Not Found</div>;
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="max-w-full max-h-[70vh] object-contain"
+      onError={() => setErrored(true)}
+    />
   );
 }

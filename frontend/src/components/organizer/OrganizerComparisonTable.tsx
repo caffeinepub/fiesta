@@ -4,7 +4,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Button } from '../ui/button';
 import { ArrowUpDown, Calendar } from 'lucide-react';
 import BookingRequestModal from '../booking/BookingRequestModal';
-import { Principal } from '@dfinity/principal';
 
 interface OrganizerComparisonTableProps {
   organizers: OrganizerProfile[];
@@ -16,11 +15,11 @@ export default function OrganizerComparisonTable({ organizers }: OrganizerCompar
   const [sortField, setSortField] = useState<SortField>('rating');
   const [bookingModalState, setBookingModalState] = useState<{
     isOpen: boolean;
-    organizerId: Principal | null;
+    organizerId: string;
     organizerName: string;
   }>({
     isOpen: false,
-    organizerId: null,
+    organizerId: '',
     organizerName: '',
   });
 
@@ -37,17 +36,19 @@ export default function OrganizerComparisonTable({ organizers }: OrganizerCompar
   const handleBookClick = (organizer: OrganizerProfile) => {
     setBookingModalState({
       isOpen: true,
-      organizerId: organizer.userId,
+      organizerId: organizer.userId.toString(),
       organizerName: organizer.companyName,
     });
   };
 
-  const handleCloseModal = () => {
-    setBookingModalState({
-      isOpen: false,
-      organizerId: null,
-      organizerName: '',
-    });
+  const handleCloseModal = (open: boolean) => {
+    if (!open) {
+      setBookingModalState({
+        isOpen: false,
+        organizerId: '',
+        organizerName: '',
+      });
+    }
   };
 
   return (
@@ -93,7 +94,7 @@ export default function OrganizerComparisonTable({ organizers }: OrganizerCompar
                   <TableCell>{organizer.experienceYears.toString()} years</TableCell>
                   <TableCell>{organizer.pricingRange}</TableCell>
                   <TableCell>
-                    {Number(organizer.totalReviews) > 0 
+                    {Number(organizer.totalReviews) > 0
                       ? `${(Math.random() * 2 + 3).toFixed(1)} (${organizer.totalReviews.toString()})`
                       : 'N/A'}
                   </TableCell>
@@ -118,8 +119,8 @@ export default function OrganizerComparisonTable({ organizers }: OrganizerCompar
       {/* Booking Request Modal */}
       {bookingModalState.organizerId && (
         <BookingRequestModal
-          isOpen={bookingModalState.isOpen}
-          onClose={handleCloseModal}
+          open={bookingModalState.isOpen}
+          onOpenChange={handleCloseModal}
           organizerId={bookingModalState.organizerId}
           organizerName={bookingModalState.organizerName}
         />

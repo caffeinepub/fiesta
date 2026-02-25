@@ -1,108 +1,76 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-23T03:36:14.143Z",
+  "generatedAt": "2026-02-25T02:37:24.249Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 8,
-    "implemented": 4,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add stable storage for event photos in the backend with fields for photo ID, organizer principal, image blob data, content type, filename, and upload timestamp",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Fix the image rendering pipeline for portfolio photos so that images uploaded by organizers are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the PortfolioGallery and OrganizerCard components. The lightbox dialog must show the actual image instead of the 'Image Not Found' placeholder.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/organizer/PortfolioGallery.tsx",
+          "frontend/src/components/organizer/OrganizerCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/organizer/PortfolioGallery.tsx",
+          "frontend/src/components/organizer/OrganizerCard.tsx"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Implement backend methods for uploading event photos (uploadEventPhoto) that accepts image blob data, content type, and filename, returning the created photo ID",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Fix the image rendering pipeline for event photos so that photos uploaded via EventPhotoUpload are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the EventPhotoGallery component and its lightbox dialog.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/organizer/EventPhotoGallery.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/organizer/EventPhotoGallery.tsx"
+        ]
       },
       {
         "id": "REQ-3",
-        "summary": "Implement backend method for retrieving event photos (getEventPhotos) that returns all photos belonging to the calling organizer with image data and metadata",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Implement backend method for deleting event photos (deleteEventPhoto) that accepts a photo ID and removes it from storage, with authorization check to ensure only the photo owner can delete",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Add event photo upload interface to the OrganizerDashboard page with file input supporting JPG, PNG, and WebP formats, upload progress indicator, and preview of uploaded images",
+        "summary": "Audit and consolidate the image data conversion utility (Uint8Array/blob to base64 data URL or object URL) into a single shared helper function used by PortfolioGallery, PortfolioUpload, EventPhotoGallery, EventPhotoUpload, and OrganizerCard to ensure consistent and correct image rendering across all components.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/organizer/EventPhotoUpload.tsx",
-          "frontend/src/pages/OrganizerDashboard.tsx"
+          "frontend/src/utils/imageUtils.ts",
+          "frontend/src/components/organizer/PortfolioUpload.tsx",
+          "frontend/src/components/organizer/EventPhotoUpload.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/organizer/EventPhotoUpload.tsx",
-          "frontend/src/pages/OrganizerDashboard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Create an event photo gallery component that displays all uploaded event photos in a grid layout with full-size lightbox view and navigation controls",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/organizer/EventPhotoGallery.tsx",
-          "frontend/src/pages/OrganizerDashboard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/organizer/EventPhotoGallery.tsx",
-          "frontend/src/pages/OrganizerDashboard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Add delete buttons to each event photo in the gallery that trigger deleteEventPhoto backend call with confirmation dialog before deletion",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/organizer/EventPhotoGallery.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/organizer/EventPhotoGallery.tsx"
-        ]
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Create React Query hooks for event photo operations: useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto with proper cache invalidation",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/utils/imageUtils.ts",
+          "frontend/src/components/organizer/PortfolioUpload.tsx",
+          "frontend/src/components/organizer/EventPhotoUpload.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
+    "frontend/src/components/booking/BookingRequestModal.tsx",
+    "frontend/src/components/booking/GuestBookingList.tsx",
+    "frontend/src/components/booking/OrganizerBookingCard.tsx",
     "frontend/src/components/organizer/EventPhotoGallery.tsx",
     "frontend/src/components/organizer/EventPhotoUpload.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/components/organizer/OrganizerCard.tsx",
+    "frontend/src/components/organizer/OrganizerComparisonTable.tsx",
+    "frontend/src/components/organizer/OrganizerProfileForm.tsx",
+    "frontend/src/components/organizer/OrganizerProfileView.tsx",
+    "frontend/src/components/organizer/PortfolioGallery.tsx",
+    "frontend/src/components/organizer/PortfolioUpload.tsx",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/GuestOrganizerBrowsing.tsx",
     "frontend/src/pages/OrganizerDashboard.tsx",
+    "frontend/src/utils/imageUtils.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

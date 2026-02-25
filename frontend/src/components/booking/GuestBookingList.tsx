@@ -26,10 +26,10 @@ function GuestBookingCard({ booking }: { booking: Booking }) {
 
   const formatEventDate = (timestamp: bigint) => {
     const date = new Date(Number(timestamp) / 1000000);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
@@ -49,7 +49,9 @@ function GuestBookingCard({ booking }: { booking: Booking }) {
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar className="h-4 w-4" />
-          <span>Requested: {new Date(Number(booking.bookingDate) / 1000000).toLocaleDateString()}</span>
+          <span>
+            Requested: {new Date(Number(booking.bookingDate) / 1000000).toLocaleDateString()}
+          </span>
         </div>
 
         {eventLoading ? (
@@ -57,7 +59,7 @@ function GuestBookingCard({ booking }: { booking: Booking }) {
         ) : event ? (
           <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h4 className="font-semibold text-navy text-sm mb-2">Event Details</h4>
-            
+
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <Calendar className="h-4 w-4 text-gold" />
               <span className="capitalize font-medium">{event.eventType} Event</span>
@@ -98,7 +100,9 @@ function GuestBookingCard({ booking }: { booking: Booking }) {
 
 export default function GuestBookingList({ bookings }: GuestBookingListProps) {
   if (bookings.length === 0) {
-    return <p className="text-gray-500">No bookings yet. Request a booking from an organizer!</p>;
+    return (
+      <p className="text-gray-500">No bookings yet. Request a booking from an organizer!</p>
+    );
   }
 
   return (

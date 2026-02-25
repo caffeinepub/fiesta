@@ -1,83 +1,70 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add persistent event photo storage and management for organizers",
+  "title": "Fix portfolio and event photo image display (Image Not Found)",
   "requirements": [
     {
-      "id": "REQ-5",
-      "summary": "Add event photo upload interface to the OrganizerDashboard page with file input supporting JPG, PNG, and WebP formats, upload progress indicator, and preview of uploaded images",
+      "id": "REQ-1",
+      "summary": "Fix portfolio image rendering pipeline to display uploaded images correctly in PortfolioGallery and OrganizerCard lightbox",
       "acceptanceCriteria": [
-        "File input accepts image files (JPG, PNG, WebP)",
-        "Shows upload progress during file transfer",
-        "Displays preview thumbnails of uploaded images",
-        "Upload interface is accessible from organizer dashboard"
+        "An organizer can upload a portfolio image and it appears correctly in the portfolio grid (no 'No Image' placeholder shown when an image exists).",
+        "Clicking a portfolio image opens the lightbox and displays the full-size image instead of 'Image Not Found'.",
+        "The image conversion logic correctly handles the Uint8Array/blob data returned from the backend actor and produces a valid src string (base64 data URL or blob object URL).",
+        "If an image genuinely has no data, the placeholder is shown as expected."
       ],
       "file_operations": [
+        {
+          "path": "frontend/src/components/organizer/PortfolioGallery.tsx",
+          "operation": "modify",
+          "description": "Update the component to correctly convert portfolio image blob data from the backend into displayable URLs using the shared utility function. Ensure both the grid thumbnails and lightbox dialog render actual images instead of placeholders when image data exists. The ExternalBlob class provides getDirectURL() for streaming/cached access per the blob-storage component usage instructions."
+        },
+        {
+          "path": "frontend/src/components/organizer/OrganizerCard.tsx",
+          "operation": "modify",
+          "description": "Fix portfolio image rendering in the organizer card component to correctly convert blob data to displayable URLs using the shared utility function. Ensure the lightbox dialog displays full-size images correctly when opened from the card."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Fix event photo rendering pipeline to display uploaded photos correctly in EventPhotoGallery lightbox",
+      "acceptanceCriteria": [
+        "An organizer can upload an event photo and it appears correctly in the event photo gallery grid.",
+        "Clicking an event photo opens the lightbox and displays the full-size image correctly.",
+        "The same Uint8Array-to-URL conversion utility used for portfolio images is applied consistently to event photos.",
+        "Placeholder is only shown when no image data is present."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/organizer/EventPhotoGallery.tsx",
+          "operation": "modify",
+          "description": "Update the component to correctly convert event photo blob data from the backend into displayable URLs using the shared utility function. Ensure both the grid thumbnails and lightbox dialog render actual images instead of placeholders when image data exists. The ExternalBlob class provides getDirectURL() for streaming/cached access per the blob-storage component usage instructions."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Create shared image utility function and consolidate usage across all image-displaying components",
+      "acceptanceCriteria": [
+        "A single utility function handles blob/Uint8Array-to-URL conversion.",
+        "All image-displaying components import and use this shared utility.",
+        "No component independently re-implements its own conversion logic."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/imageUtils.ts",
+          "operation": "create",
+          "description": "Create a shared utility module that exports a function to convert ExternalBlob instances to displayable URLs using the getDirectURL() method. The blob-storage component provides ExternalBlob with getDirectURL() which returns a streaming, browser-cached HTTP URL that should be used as the src for images. Include helper functions for handling null/undefined blob data gracefully (returning placeholder state) and for proper cleanup of object URLs if needed."
+        },
+        {
+          "path": "frontend/src/components/organizer/PortfolioUpload.tsx",
+          "operation": "modify",
+          "description": "Update the component to import and use the shared image utility function for preview rendering, ensuring consistent blob-to-URL conversion across upload and display flows."
+        },
         {
           "path": "frontend/src/components/organizer/EventPhotoUpload.tsx",
-          "operation": "create",
-          "description": "Create event photo upload component following the PortfolioUpload.tsx pattern. Use the blob-storage component's ExternalBlob.fromBytes() for file conversion and withUploadProgress() for progress tracking. Validate file types (JPG, PNG, WebP) and size limits (5MB max). Display upload progress indicator and preview thumbnails of uploaded images. Verify the blob-storage component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/OrganizerDashboard.tsx",
           "operation": "modify",
-          "description": "Wire the EventPhotoUpload component into the organizer dashboard layout. Add a new section below the portfolio gallery section labeled 'Event Photos' that includes the EventPhotoUpload component. Ensure proper spacing and layout consistency with existing dashboard sections."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Create an event photo gallery component that displays all uploaded event photos in a grid layout with full-size lightbox view and navigation controls",
-      "acceptanceCriteria": [
-        "Gallery displays all event photos uploaded by the organizer",
-        "Grid layout with responsive design",
-        "Clicking photo opens full-size lightbox modal",
-        "Lightbox includes navigation controls to browse photos"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/organizer/EventPhotoGallery.tsx",
-          "operation": "create",
-          "description": "Create event photo gallery component following the PortfolioGallery.tsx pattern. Display photos in a responsive grid layout using ExternalBlob.getDirectURL() for image rendering. Implement lightbox modal with full-size image view and keyboard navigation (arrow keys, escape). Use the blob-storage component for image display. Verify the blob-storage component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/OrganizerDashboard.tsx",
-          "operation": "modify",
-          "description": "Wire the EventPhotoGallery component into the organizer dashboard layout. Add the gallery component to the 'Event Photos' section below the EventPhotoUpload component. Ensure the gallery refreshes when new photos are uploaded."
-        }
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "summary": "Add delete buttons to each event photo in the gallery that trigger deleteEventPhoto backend call with confirmation dialog before deletion",
-      "acceptanceCriteria": [
-        "Each photo has a visible delete button",
-        "Confirmation dialog appears before deletion",
-        "Successfully deleted photos are removed from gallery immediately",
-        "Error handling for failed deletions with user feedback"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/organizer/EventPhotoGallery.tsx",
-          "operation": "modify",
-          "description": "Add delete functionality to each photo in the gallery. Display a delete button overlay on hover for each photo. Implement confirmation dialog using native confirm() or a modal component. Call the useDeleteEventPhoto hook on confirmation. Handle success by displaying toast notification and removing the photo from the gallery. Handle errors with toast error messages."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Create React Query hooks for event photo operations: useUploadEventPhoto, useGetEventPhotos, and useDeleteEventPhoto with proper cache invalidation",
-      "acceptanceCriteria": [
-        "Upload hook handles file to blob conversion and backend upload",
-        "Get photos hook fetches and caches event photos from backend",
-        "Delete hook invalidates cache after successful deletion",
-        "All hooks include loading and error states"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add three new React Query hooks to the existing hooks file: useUploadEventPhoto (mutation hook that accepts ExternalBlob, contentType, and filename parameters, calls actor.uploadEventPhoto, and invalidates 'eventPhotos' query on success), useGetEventPhotos (query hook that fetches event photos from actor.getEventPhotos with queryKey ['eventPhotos']), and useDeleteEventPhoto (mutation hook that accepts photoId, calls actor.deleteEventPhoto, and invalidates 'eventPhotos' query on success). Follow the existing hook patterns in the file for consistency. All hooks should include proper TypeScript types, loading states, and error handling."
+          "description": "Update the component to import and use the shared image utility function for preview rendering, ensuring consistent blob-to-URL conversion across upload and display flows."
         }
       ]
     }

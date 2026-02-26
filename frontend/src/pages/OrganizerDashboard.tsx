@@ -1,123 +1,142 @@
-import { useNavigate } from '@tanstack/react-router';
+import React, { useState } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetOrganizer, useGetEventPhotos } from '../hooks/useQueries';
+import {
+  useGetOrganizer,
+  useGetOrganizerPortfolioImages,
+  useGetEventPhotos,
+} from '../hooks/useQueries';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import OrganizerProfileForm from '../components/organizer/OrganizerProfileForm';
 import OrganizerProfileView from '../components/organizer/OrganizerProfileView';
 import PortfolioUpload from '../components/organizer/PortfolioUpload';
-import PortfolioGallery from '../components/organizer/PortfolioGallery';
 import EventPhotoUpload from '../components/organizer/EventPhotoUpload';
-import EventPhotoGallery from '../components/organizer/EventPhotoGallery';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { Edit2, Images, Camera } from 'lucide-react';
 
 export default function OrganizerDashboard() {
-  const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const principal = identity?.getPrincipal() ?? null;
-  const { data: organizer, isLoading } = useGetOrganizer(principal);
+  const organizerId = identity?.getPrincipal().toString();
+
+  const { data: organizer, isLoading: organizerLoading } = useGetOrganizer(organizerId);
+  const { data: portfolioImages = [] } = useGetOrganizerPortfolioImages(organizerId);
   const { data: eventPhotos = [] } = useGetEventPhotos();
+
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    if (!identity) {
-      navigate({ to: '/' });
-    }
-  }, [identity, navigate]);
-
   if (!identity) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-playfair font-bold text-navy-900 mb-2">Please Log In</h2>
+          <p className="text-muted-foreground">
+            You need to be logged in to access your organizer dashboard.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  const hasProfile = !!organizer;
-  const showForm = !hasProfile || isEditing;
+  if (organizerLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-navy-900" />
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-navy">Organizer Dashboard</h1>
-        {hasProfile && (
-          <Button onClick={() => navigate({ to: '/organizer/bookings' })}>
-            View Booking Requests
-          </Button>
-        )}
-      </div>
-
-      {isLoading ? (
-        <p className="text-gray-500">Loading profile...</p>
-      ) : showForm ? (
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle className="text-2xl text-navy">
-              {hasProfile ? 'Edit Your Profile' : 'Create Your Organizer Profile'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <OrganizerProfileForm
-              existingProfile={organizer || undefined}
-              onSuccess={() => {
-                setIsEditing(false);
-              }}
-            />
-            {hasProfile && (
-              <Button
-                variant="outline"
-                onClick={() => setIsEditing(false)}
-                className="mt-4 w-full"
-              >
-                Cancel
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-8">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <OrganizerProfileView organizer={organizer} />
-            <Button onClick={() => setIsEditing(true)} className="mt-4">
+            <h1 className="text-3xl font-playfair font-bold text-navy-900">
+              Organizer Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Manage your profile, portfolio, and event photos.
+            </p>
+          </div>
+          {organizer && !isEditing && (
+            <Button
+              variant="outline"
+              className="border-navy-300 text-navy-700 hover:bg-navy-50 gap-2"
+              onClick={() => setIsEditing(true)}
+            >
+              <Edit2 className="w-4 h-4" />
               Edit Profile
             </Button>
-          </div>
+          )}
+        </div>
 
-          {/* Portfolio Management Section */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-navy">Portfolio Management</h2>
+        {/* Profile Section */}
+        {!organizer || isEditing ? (
+          <Card className="border-navy-200">
+            <CardHeader>
+              <CardTitle className="font-playfair text-navy-900">
+                {organizer ? 'Edit Profile' : 'Create Your Profile'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OrganizerProfileForm
+                existingProfile={organizer}
+                onSuccess={() => setIsEditing(false)}
+              />
+            </CardContent>
+          </Card>
+        ) : (
+          <OrganizerProfileView profile={organizer} />
+        )}
 
-            <PortfolioUpload
-              images={organizer.portfolio_images}
-              organizerId={identity.getPrincipal().toString()}
-            />
+        {/* Only show upload sections if organizer profile exists */}
+        {organizer && (
+          <>
+            <Separator className="border-navy-100" />
 
-            <Card className="shadow-soft">
+            {/* ── Portfolio Images Section ── */}
+            <Card className="border-navy-200">
               <CardHeader>
-                <CardTitle className="text-xl text-navy">Your Portfolio</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Images className="w-5 h-5 text-gold-500" />
+                  <CardTitle className="font-playfair text-navy-900">Portfolio Images</CardTitle>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Showcase your best work. These images appear on your public profile.
+                </p>
               </CardHeader>
               <CardContent>
-                <PortfolioGallery
-                  images={organizer.portfolio_images}
-                  organizerName={organizer.companyName}
+                <PortfolioUpload
+                  images={portfolioImages}
+                  organizerId={organizerId!}
                 />
               </CardContent>
             </Card>
-          </div>
 
-          {/* Event Photos Section */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-navy">Event Photos</h2>
+            <Separator className="border-navy-100" />
 
-            <EventPhotoUpload photos={eventPhotos} />
-
-            <Card className="shadow-soft">
+            {/* ── Events Photos Section ── */}
+            <Card className="border-navy-200">
               <CardHeader>
-                <CardTitle className="text-xl text-navy">Your Event Photos</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Camera className="w-5 h-5 text-gold-500" />
+                  <CardTitle className="font-playfair text-navy-900">Events Photos</CardTitle>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Upload photos from your past events. Customers can preview these when browsing
+                  organisers.
+                </p>
               </CardHeader>
               <CardContent>
-                <EventPhotoGallery photos={eventPhotos} />
+                <EventPhotoUpload
+                  photos={eventPhotos}
+                  organizerId={organizerId!}
+                />
               </CardContent>
             </Card>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

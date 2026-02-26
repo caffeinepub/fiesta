@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Principal } from '@dfinity/principal';
 import {
   Dialog,
   DialogContent,
@@ -48,7 +47,7 @@ export default function BookingRequestModal({
     try {
       await createBookingMutation.mutateAsync({
         eventId: BigInt(selectedEventId),
-        organizerId: Principal.fromText(organizerId),
+        organizerId: organizerId,
       });
 
       setSuccessMessage('Booking request sent successfully!');

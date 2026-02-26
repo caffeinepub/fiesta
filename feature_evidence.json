@@ -2,31 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-image-rendering-pipeline-for-portfolio-photos-so-that-images-uploaded-by-organizers-are-correctly-converted-from-the-backend-blob-uint8array-format-to-a-displayable-base64-data-url-or-object-url-in-the-portfoliogallery-and-organizercard-components-the-lightbox-dialog-must-show-the-actual-image-instead-of-the-image-not-found-placeholder",
-      "featureTitle": "Fix the image rendering pipeline for portfolio photos so that images uploaded by organizers are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the PortfolioGallery and OrganizerCard components. The lightbox dialog must show the actual image instead of the 'Image Not Found' placeholder.",
+      "featureId": "feature-fix-the-organizercard-component-and-its-associated-lightbox-gallery-eventphotolightbox-in-the-find-organisers-page-so-that-clicking-the-view-button-on-an-organiser-card-shows-that-organiser-s-events-photos-eventphoto-records-not-their-portfolio-images",
+      "featureTitle": "Fix the OrganizerCard component and its associated lightbox/gallery (EventPhotoLightbox) in the Find Organisers page so that clicking the 'View' button on an organiser card shows that organiser's events photos (EventPhoto records), not their portfolio images.",
       "files": [
+        "frontend/src/components/organizer/EventPhotoLightbox.tsx",
         "frontend/src/components/organizer/OrganizerCard.tsx",
-        "frontend/src/components/organizer/PortfolioGallery.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-fix-the-image-rendering-pipeline-for-event-photos-so-that-photos-uploaded-via-eventphotoupload-are-correctly-converted-from-the-backend-blob-uint8array-format-to-a-displayable-base64-data-url-or-object-url-in-the-eventphotogallery-component-and-its-lightbox-dialog",
-      "featureTitle": "Fix the image rendering pipeline for event photos so that photos uploaded via EventPhotoUpload are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the EventPhotoGallery component and its lightbox dialog.",
-      "files": [
-        "frontend/src/components/organizer/EventPhotoGallery.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/GuestOrganizerBrowsing.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -43,12 +25,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-audit-and-consolidate-the-image-data-conversion-utility-uint8array-blob-to-base64-data-url-or-object-url-into-a-single-shared-helper-function-used-by-portfoliogallery-portfolioupload-eventphotogallery-eventphotoupload-and-organizercard-to-ensure-consistent-and-correct-image-rendering-across-all-components",
-      "featureTitle": "Audit and consolidate the image data conversion utility (Uint8Array/blob to base64 data URL or object URL) into a single shared helper function used by PortfolioGallery, PortfolioUpload, EventPhotoGallery, EventPhotoUpload, and OrganizerCard to ensure consistent and correct image rendering across all components.",
+      "featureId": "feature-in-the-organiser-dashboard-organizerdashboard-ensure-the-events-photos-upload-section-eventphotoupload-is-a-dedicated-clearly-labelled-section-separate-from-the-portfolio-images-upload-section-portfolioupload-organisers-must-be-able-to-upload-view-and-delete-events-photos-independently-from-portfolio-images-after-their-profile-is-created",
+      "featureTitle": "In the Organiser Dashboard (OrganizerDashboard), ensure the events photos upload section (EventPhotoUpload) is a dedicated, clearly labelled section separate from the portfolio images upload section (PortfolioUpload). Organisers must be able to upload, view, and delete events photos independently from portfolio images after their profile is created.",
       "files": [
         "frontend/src/components/organizer/EventPhotoUpload.tsx",
-        "frontend/src/components/organizer/PortfolioUpload.tsx",
-        "frontend/src/utils/imageUtils.ts"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/OrganizerDashboard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -61,6 +43,27 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-in-the-organizerprofileview-component-ensure-the-portfolio-gallery-section-only-displays-portfolio-images-portfolio-images-and-does-not-render-any-event-photos-event-photos-should-not-appear-anywhere-in-the-read-only-organiser-profile-view-shown-to-customers",
+      "featureTitle": "In the OrganizerProfileView component, ensure the portfolio gallery section only displays portfolio images (portfolio_images) and does not render any event photos. Event photos should not appear anywhere in the read-only organiser profile view shown to customers.",
+      "files": [
+        "frontend/src/components/organizer/OrganizerProfileView.tsx",
+        "frontend/src/components/organizer/PortfolioGallery.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

@@ -1,19 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { ExternalBlob } from '../backend';
+import { useInternetIdentity } from './useInternetIdentity';
 import type {
-  OrganizerProfile,
   UserProfile,
-  UserRole,
+  OrganizerProfile,
   Event,
   Booking,
   BookingStatus,
-  EventType,
-  LocationType,
-  EventStyle,
-  PortfolioImage,
+  Review,
   EventPhoto,
+  PortfolioImage,
 } from '../backend';
+import { EventType, LocationType, EventStyle } from '../backend';
+import { ExternalBlob } from '../backend';
 import { Principal } from '@dfinity/principal';
 
 // ─── User Profile ────────────────────────────────────────────────────────────
@@ -50,74 +49,44 @@ export function useSaveCallerUserProfile() {
   });
 }
 
+// ─── User Role ───────────────────────────────────────────────────────────────
+
 export function useGetCallerUserRole() {
-  const { actor, isFetching: actorFetching } = useActor();
-  return useQuery<UserRole>({
-    queryKey: ['currentUserRole'],
+  const { actor, isFetching } = useActor();
+  return useQuery<string>({
+    queryKey: ['callerUserRole'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserRole();
-    },
-    enabled: !!actor && !actorFetching,
-  });
-}
-
-// ─── Organizer Profile ───────────────────────────────────────────────────────
-
-export function useGetOrganizerProfile() {
-  const { actor, isFetching } = useActor();
-  return useQuery<OrganizerProfile | null>({
-    queryKey: ['organizerProfile'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        // getCallerUserRole to find the principal, then getOrganizer
-        // We use getCallerUserProfile to get the user, then look up organizer by caller principal
-        // Since we don't have a direct "getCallerOrganizer", we use getAllOrganizers and filter
-        // Actually the backend has getOrganizer(organizerId) - we need the caller's principal
-        // We'll use a workaround: call getOrganizer with a placeholder and catch the error
-        // The actor itself knows the caller principal via the identity
-        const allOrganizers = await actor.getAllOrganizers();
-        // We can't get caller principal from actor directly in this hook,
-        // so we return null and let the dashboard handle it via identity
-        return null;
-      } catch {
-        return null;
-      }
     },
     enabled: !!actor && !isFetching,
   });
 }
 
-export function useGetOrganizer(organizerId: Principal | null) {
+// ─── Organizer Profile ───────────────────────────────────────────────────────
+
+export function useGetOrganizer(organizerId?: string) {
   const { actor, isFetching } = useActor();
-  return useQuery<OrganizerProfile | null>({
-    queryKey: ['organizer', organizerId?.toString()],
+  return useQuery<OrganizerProfile>({
+    queryKey: ['organizer', organizerId],
     queryFn: async () => {
-      if (!actor || !organizerId) return null;
-      try {
-        return await actor.getOrganizer(organizerId);
-      } catch {
-        return null;
-      }
+      if (!actor) throw new Error('Actor not available');
+      if (!organizerId) throw new Error('No organizer ID');
+      return actor.getOrganizer(Principal.fromText(organizerId));
     },
     enabled: !!actor && !isFetching && !!organizerId,
   });
 }
 
-export function useGetOrganizerProfileById(organizerId: string) {
+export function useGetAllOrganizers() {
   const { actor, isFetching } = useActor();
-  return useQuery<OrganizerProfile | null>({
-    queryKey: ['organizerProfile', organizerId],
+  return useQuery<OrganizerProfile[]>({
+    queryKey: ['allOrganizers'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return actor.getOrganizer(Principal.fromText(organizerId));
-      } catch {
-        return null;
-      }
+      if (!actor) return [];
+      return actor.getAllOrganizers();
     },
-    enabled: !!actor && !isFetching && !!organizerId,
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -125,43 +94,26 @@ export function useSaveOrganizerProfile() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (profileData: OrganizerProfile) => {
+    mutationFn: async (profile: OrganizerProfile) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveOrganizerProfile(profileData);
+      return actor.saveOrganizerProfile(profile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizer'] });
-      queryClient.invalidateQueries({ queryKey: ['organizerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['allOrganizers'] });
     },
   });
 }
 
-// ─── Portfolio Images ────────────────────────────────────────────────────────
+// ─── Portfolio Images ─────────────────────────────────────────────────────────
 
-export function useGetPortfolioImages(organizerId?: string) {
+export function useGetOrganizerPortfolioImages(organizerId?: string) {
   const { actor, isFetching } = useActor();
   return useQuery<PortfolioImage[]>({
     queryKey: ['portfolioImages', organizerId],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getOrganizerPortfolioImages(Principal.fromText(organizerId!));
-    },
-    enabled: !!actor && !isFetching && !!organizerId,
-  });
-}
-
-export function useGetOrganizerPortfolioImages(organizerId: Principal | null) {
-  const { actor, isFetching } = useActor();
-  return useQuery<PortfolioImage[]>({
-    queryKey: ['portfolioImages', organizerId?.toString()],
-    queryFn: async () => {
       if (!actor || !organizerId) return [];
-      try {
-        return await actor.getOrganizerPortfolioImages(organizerId);
-      } catch {
-        return [];
-      }
+      return actor.getOrganizerPortfolioImages(Principal.fromText(organizerId));
     },
     enabled: !!actor && !isFetching && !!organizerId,
   });
@@ -171,41 +123,20 @@ export function useAddPortfolioImage() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ bytes, filename }: { bytes: Uint8Array<ArrayBuffer>; filename: string }) => {
+    mutationFn: async ({ file, organizerId }: { file: File; organizerId: string }) => {
       if (!actor) throw new Error('Actor not available');
-
-      // Step 1: Upload the blob to IC blob storage via uploadEventPhoto.
-      // This is the only backend call that accepts ExternalBlob and actually
-      // persists the bytes to the storage canister.
+      const arrayBuffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
       const blob = ExternalBlob.fromBytes(bytes);
-      const photoId = await actor.uploadEventPhoto(blob, 'image/jpeg', filename);
-
-      // Step 2: Fetch the stored event photos to get the backend-returned
-      // ExternalBlob, whose getDirectURL() returns a persistent IC HTTP URL
-      // (not a session-local blob: URL).
-      const storedPhotos = await actor.getEventPhotos();
-      const storedPhoto = storedPhotos.find((p) => p.id === photoId);
-
-      let blobUrl: string;
-      if (storedPhoto && storedPhoto.blob) {
-        // Use the URL from the backend-returned blob — this is a persistent
-        // IC canister streaming URL accessible from any browser session.
-        blobUrl = storedPhoto.blob.getDirectURL();
-      } else {
-        // Fallback: use the local blob's URL (may only work in current session)
-        blobUrl = blob.getDirectURL();
-      }
-
-      // Step 3: Store the persistent URL as the portfolio image filename
-      await actor.addPortfolioImage(blobUrl);
-      return { photoId, blobUrl };
+      const photoId = await actor.uploadEventPhoto(blob, file.type, file.name);
+      const url = blob.getDirectURL();
+      await actor.addPortfolioImage(url);
+      return photoId;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolioImages'] });
-      queryClient.invalidateQueries({ queryKey: ['organizer'] });
-      queryClient.invalidateQueries({ queryKey: ['organizerProfile'] });
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['portfolioImages', variables.organizerId] });
+      queryClient.invalidateQueries({ queryKey: ['organizer', variables.organizerId] });
       queryClient.invalidateQueries({ queryKey: ['allOrganizers'] });
-      queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
     },
   });
 }
@@ -214,15 +145,105 @@ export function useDeletePortfolioImage() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (filename: string) => {
+    mutationFn: async ({ filename, organizerId }: { filename: string; organizerId: string }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.deletePortfolioImage(filename);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolioImages'] });
-      queryClient.invalidateQueries({ queryKey: ['organizer'] });
-      queryClient.invalidateQueries({ queryKey: ['organizerProfile'] });
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['portfolioImages', variables.organizerId] });
+      queryClient.invalidateQueries({ queryKey: ['organizer', variables.organizerId] });
       queryClient.invalidateQueries({ queryKey: ['allOrganizers'] });
+    },
+  });
+}
+
+// ─── Event Photos ─────────────────────────────────────────────────────────────
+
+export function useGetEventPhotos() {
+  const { actor, isFetching } = useActor();
+  return useQuery<EventPhoto[]>({
+    queryKey: ['eventPhotos'],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getEventPhotos();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+/**
+ * Fetches event photos for a specific organizer.
+ * NOTE: The backend only exposes getEventPhotos() for the caller's own photos.
+ * For the public-facing lightbox, this hook attempts the call but gracefully
+ * returns an empty array if the caller is not the organizer (no public endpoint).
+ */
+export function useGetOrganizerEventPhotos(organizerId?: string) {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<EventPhoto[]>({
+    queryKey: ['organizerEventPhotos', organizerId],
+    queryFn: async () => {
+      if (!actor || !organizerId) return [];
+      // If the caller IS the organizer, fetch their own photos
+      const callerPrincipal = identity?.getPrincipal().toString();
+      if (callerPrincipal === organizerId) {
+        try {
+          return await actor.getEventPhotos();
+        } catch {
+          return [];
+        }
+      }
+      // For other callers (guests browsing), the backend has no public endpoint.
+      // Return empty array — this is a known backend limitation.
+      return [];
+    },
+    enabled: !!actor && !isFetching && !!organizerId,
+  });
+}
+
+export function useUploadEventPhoto() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      file,
+      onProgress,
+    }: {
+      file: File;
+      onProgress?: (pct: number) => void;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      const arrayBuffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let blob = ExternalBlob.fromBytes(bytes);
+      if (onProgress) {
+        blob = blob.withUploadProgress(onProgress);
+      }
+      return actor.uploadEventPhoto(blob, file.type, file.name);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
+      queryClient.invalidateQueries({ queryKey: ['organizerEventPhotos'] });
+    },
+  });
+}
+
+export function useDeleteEventPhoto() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (photoId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.deleteEventPhoto(photoId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
+      queryClient.invalidateQueries({ queryKey: ['organizerEventPhotos'] });
     },
   });
 }
@@ -241,19 +262,15 @@ export function useGetGuestEvents(guestId?: string) {
   });
 }
 
-export function useGetEvent(eventId: bigint) {
+export function useGetEvent(eventId?: bigint) {
   const { actor, isFetching } = useActor();
-  return useQuery<Event | null>({
-    queryKey: ['event', eventId.toString()],
+  return useQuery<Event>({
+    queryKey: ['event', eventId?.toString()],
     queryFn: async () => {
-      if (!actor) return null;
-      try {
-        return await actor.getEvent(eventId);
-      } catch {
-        return null;
-      }
+      if (!actor || eventId === undefined) throw new Error('No event ID');
+      return actor.getEvent(eventId);
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && eventId !== undefined,
   });
 }
 
@@ -261,7 +278,7 @@ export function useCreateEvent() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (eventData: {
+    mutationFn: async (params: {
       eventType: EventType;
       locationType: LocationType;
       numberOfGuests: bigint;
@@ -271,12 +288,12 @@ export function useCreateEvent() {
     }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.createEvent(
-        eventData.eventType,
-        eventData.locationType,
-        eventData.numberOfGuests,
-        eventData.eventStyle,
-        eventData.contact_number,
-        eventData.date,
+        params.eventType,
+        params.locationType,
+        params.numberOfGuests,
+        params.eventStyle,
+        params.contact_number,
+        params.date,
       );
     },
     onSuccess: () => {
@@ -285,21 +302,7 @@ export function useCreateEvent() {
   });
 }
 
-// ─── Organizers ──────────────────────────────────────────────────────────────
-
-export function useGetAllOrganizers() {
-  const { actor, isFetching } = useActor();
-  return useQuery<OrganizerProfile[]>({
-    queryKey: ['allOrganizers'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getAllOrganizers();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-// ─── Bookings ────────────────────────────────────────────────────────────────
+// ─── Bookings ─────────────────────────────────────────────────────────────────
 
 export function useGetGuestBookings(guestId?: string) {
   const { actor, isFetching } = useActor();
@@ -329,24 +332,9 @@ export function useCreateBooking() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ eventId, organizerId }: { eventId: bigint; organizerId: Principal }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createBooking(eventId, organizerId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['guestBookings'] });
-      queryClient.invalidateQueries({ queryKey: ['organizerBookings'] });
-    },
-  });
-}
-
-export function useRequestBooking() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-  return useMutation({
     mutationFn: async ({ eventId, organizerId }: { eventId: bigint; organizerId: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.requestBooking(eventId, Principal.fromText(organizerId));
+      return actor.createBooking(eventId, Principal.fromText(organizerId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guestBookings'] });
@@ -364,70 +352,56 @@ export function useUpdateBookingStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizerBookings'] });
-      queryClient.invalidateQueries({ queryKey: ['guestBookings'] });
     },
   });
 }
 
-// ─── Event Photos ────────────────────────────────────────────────────────────
+// ─── Reviews ──────────────────────────────────────────────────────────────────
 
-export function useGetEventPhotos() {
+export function useGetOrganizerReviews(organizerId?: string) {
   const { actor, isFetching } = useActor();
-  return useQuery<EventPhoto[]>({
-    queryKey: ['eventPhotos'],
+  return useQuery<Review[]>({
+    queryKey: ['organizerReviews', organizerId],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getEventPhotos();
+      if (!actor || !organizerId) return [];
+      return actor.getOrganizerReviews(Principal.fromText(organizerId));
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && !!organizerId,
   });
 }
 
-export function useUploadEventPhoto() {
+export function useSubmitReview() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      bytes,
-      contentType,
-      filename,
-    }: {
-      bytes: Uint8Array<ArrayBuffer>;
-      contentType: string;
-      filename: string;
+    mutationFn: async (params: {
+      organizerId: string;
+      rating: bigint;
+      comment: string;
+      eventId: bigint;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      const blob = ExternalBlob.fromBytes(bytes);
-      return actor.uploadEventPhoto(blob, contentType, filename);
+      return actor.submitReview(
+        Principal.fromText(params.organizerId),
+        params.rating,
+        params.comment,
+        params.eventId,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
+      queryClient.invalidateQueries({ queryKey: ['organizerReviews'] });
     },
   });
 }
 
-export function useDeleteEventPhoto() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (photoId: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteEventPhoto(photoId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
-    },
-  });
-}
-
-// ─── Admin ───────────────────────────────────────────────────────────────────
+// ─── Admin ────────────────────────────────────────────────────────────────────
 
 export function useGetAllOrganizersAdmin() {
   const { actor, isFetching } = useActor();
   return useQuery<OrganizerProfile[]>({
     queryKey: ['allOrganizersAdmin'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) return [];
       return actor.getAllOrganizers();
     },
     enabled: !!actor && !isFetching,
@@ -439,7 +413,7 @@ export function useGetAllEvents() {
   return useQuery<Event[]>({
     queryKey: ['allEvents'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) return [];
       return actor.getAllEvents();
     },
     enabled: !!actor && !isFetching,
@@ -451,9 +425,41 @@ export function useGetAllBookings() {
   return useQuery<Booking[]>({
     queryKey: ['allBookings'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) return [];
       return actor.getAllBookings();
     },
     enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllReviews() {
+  const { actor, isFetching } = useActor();
+  return useQuery<Review[]>({
+    queryKey: ['allReviews'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllReviews();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useFilterOrganizers() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async (params: {
+      eventType: EventType;
+      locationType: LocationType;
+      numberOfGuests: bigint;
+      eventStyle: EventStyle;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.filterOrganizers(
+        params.eventType,
+        params.locationType,
+        params.numberOfGuests,
+        params.eventStyle,
+      );
+    },
   });
 }

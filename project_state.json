@@ -1,40 +1,69 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Platform for finding event organisers. Fixing portfolio images appearing in events photos section, and making events photos visible to customers on Find Organisers page via View button preview.",
   "architectural_notes": [],
   "known_issues": [
-    "Event photo upload/display is broken and persists across redeployments"
+    "Portfolio images incorrectly appearing in events photos section",
+    "Events photos not visible to customers on Find Organisers page"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-image-rendering-pipeline-for-portfolio-photos-so-that-images-uploaded-by-organizers-are-correctly-converted-from-the-backend-blob-uint8array-format-to-a-displayable-base64-data-url-or-object-url-in-the-portfoliogallery-and-organizercard-components-the-lightbox-dialog-must-show-the-actual-image-instead-of-the-image-not-found-placeholder",
-      "title": "Fix the image rendering pipeline for portfolio photos so that images uploaded by organizers are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the PortfolioGallery and OrganizerCard components. The lightbox dialog must show the actual image instead of the 'Image Not Found' placeholder.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-image-rendering-pipeline-for-event-photos-so-that-photos-uploaded-via-eventphotoupload-are-correctly-converted-from-the-backend-blob-uint8array-format-to-a-displayable-base64-data-url-or-object-url-in-the-eventphotogallery-component-and-its-lightbox-dialog",
-      "title": "Fix the image rendering pipeline for event photos so that photos uploaded via EventPhotoUpload are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the EventPhotoGallery component and its lightbox dialog.",
+      "id": "feature-fix-the-organizercard-component-and-its-associated-lightbox-gallery-eventphotolightbox-in-the-find-organisers-page-so-that-clicking-the-view-button-on-an-organiser-card-shows-that-organiser-s-events-photos-eventphoto-records-not-their-portfolio-images",
+      "title": "Fix the OrganizerCard component and its associated lightbox/gallery (EventPhotoLightbox) in the Find Organisers page so that clicking the 'View' button on an organiser card shows that organiser's events photos (EventPhoto records), not their portfolio images.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-audit-and-consolidate-the-image-data-conversion-utility-uint8array-blob-to-base64-data-url-or-object-url-into-a-single-shared-helper-function-used-by-portfoliogallery-portfolioupload-eventphotogallery-eventphotoupload-and-organizercard-to-ensure-consistent-and-correct-image-rendering-across-all-components",
-      "title": "Audit and consolidate the image data conversion utility (Uint8Array/blob to base64 data URL or object URL) into a single shared helper function used by PortfolioGallery, PortfolioUpload, EventPhotoGallery, EventPhotoUpload, and OrganizerCard to ensure consistent and correct image rendering across all components.",
+      "id": "feature-in-the-organiser-dashboard-organizerdashboard-ensure-the-events-photos-upload-section-eventphotoupload-is-a-dedicated-clearly-labelled-section-separate-from-the-portfolio-images-upload-section-portfolioupload-organisers-must-be-able-to-upload-view-and-delete-events-photos-independently-from-portfolio-images-after-their-profile-is-created",
+      "title": "In the Organiser Dashboard (OrganizerDashboard), ensure the events photos upload section (EventPhotoUpload) is a dedicated, clearly labelled section separate from the portfolio images upload section (PortfolioUpload). Organisers must be able to upload, view, and delete events photos independently from portfolio images after their profile is created.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-in-the-organizerprofileview-component-ensure-the-portfolio-gallery-section-only-displays-portfolio-images-portfolio-images-and-does-not-render-any-event-photos-event-photos-should-not-appear-anywhere-in-the-read-only-organiser-profile-view-shown-to-customers",
+      "title": "In the OrganizerProfileView component, ensure the portfolio gallery section only displays portfolio images (portfolio_images) and does not render any event photos. Event photos should not appear anywhere in the read-only organiser profile view shown to customers.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix portfolio and event photo image display (Image Not Found)",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Separate portfolio images from events photos — portfolio only in dedicated Portfolio section, events photos tied to specific events",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Show events photos preview to customers via View button on organiser cards in Find Organisers page",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Events photos uploaded by organisers within event management section after profile creation",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Ensure portfolio images and events photos are completely separate data sections in the backend. Portfolio images (portfolio_images field on OrganizerProfile) must never appear in the events photos section, and event photos (EventPhoto type stored per event) must never appear in the portfolio section.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Find Organisers",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

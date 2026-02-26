@@ -23,8 +23,7 @@ export default function PortfolioUpload({ images, organizerId }: PortfolioUpload
 
     setUploading(true);
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      await addImage.mutateAsync({ bytes, filename: file.name });
+      await addImage.mutateAsync({ file, organizerId });
       toast.success('Portfolio image uploaded successfully');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to upload image');
@@ -36,7 +35,7 @@ export default function PortfolioUpload({ images, organizerId }: PortfolioUpload
 
   const handleDelete = async (filename: string) => {
     try {
-      await deleteImage.mutateAsync(filename);
+      await deleteImage.mutateAsync({ filename, organizerId });
       toast.success('Image deleted');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to delete image');

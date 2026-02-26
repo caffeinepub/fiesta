@@ -1,70 +1,99 @@
 {
   "kind": "build_request",
-  "title": "Fix portfolio and event photo image display (Image Not Found)",
-  "priority": "high",
+  "title": "Separate portfolio & events photos, fix customer visibility on Find Organisers page",
+  "projectName": "FIESTA",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the image rendering pipeline for portfolio photos so that images uploaded by organizers are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the PortfolioGallery and OrganizerCard components. The lightbox dialog must show the actual image instead of the 'Image Not Found' placeholder.",
-      "target": "frontend",
+      "text": "Ensure portfolio images and events photos are completely separate data sections in the backend. Portfolio images (portfolio_images field on OrganizerProfile) must never appear in the events photos section, and event photos (EventPhoto type stored per event) must never appear in the portfolio section.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-8",
+          "msg-9"
         ],
         "quotes": [
-          "Still same issue"
+          "Portfolio image is going in events photos",
+          "Yes completely separate"
         ]
       },
       "acceptanceCriteria": [
-        "An organizer can upload a portfolio image and it appears correctly in the portfolio grid (no 'No Image' placeholder shown when an image exists).",
-        "Clicking a portfolio image opens the lightbox and displays the full-size image instead of 'Image Not Found'.",
-        "The image conversion logic correctly handles the Uint8Array/blob data returned from the backend actor and produces a valid src string (base64 data URL or blob object URL).",
-        "If an image genuinely has no data, the placeholder is shown as expected."
+        "Portfolio images are stored only in OrganizerProfile.portfolio_images",
+        "Event photos are stored only under their respective events (EventPhoto records)",
+        "No query or update method returns portfolio images in place of event photos or vice versa"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the image rendering pipeline for event photos so that photos uploaded via EventPhotoUpload are correctly converted from the backend blob/Uint8Array format to a displayable base64 data URL or object URL in the EventPhotoGallery component and its lightbox dialog.",
+      "text": "Fix the OrganizerCard component and its associated lightbox/gallery (EventPhotoLightbox) in the Find Organisers page so that clicking the 'View' button on an organiser card shows that organiser's events photos (EventPhoto records), not their portfolio images.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-8",
+          "msg-9"
         ],
         "quotes": [
-          "Still same issue"
+          "events photos is not visible for customers in find organisers page",
+          "preview, in that button view work"
         ]
       },
       "acceptanceCriteria": [
-        "An organizer can upload an event photo and it appears correctly in the event photo gallery grid.",
-        "Clicking an event photo opens the lightbox and displays the full-size image correctly.",
-        "The same Uint8Array-to-URL conversion utility used for portfolio images is applied consistently to event photos.",
-        "Placeholder is only shown when no image data is present."
+        "Clicking 'View' on an organiser card in the Find Organisers page (GuestOrganizerBrowsing) opens a gallery/lightbox showing only that organiser's event photos",
+        "Portfolio images do not appear in this lightbox",
+        "If the organiser has no event photos uploaded, the lightbox/gallery shows an appropriate empty state message"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Audit and consolidate the image data conversion utility (Uint8Array/blob to base64 data URL or object URL) into a single shared helper function used by PortfolioGallery, PortfolioUpload, EventPhotoGallery, EventPhotoUpload, and OrganizerCard to ensure consistent and correct image rendering across all components.",
+      "text": "In the Organiser Dashboard (OrganizerDashboard), ensure the events photos upload section (EventPhotoUpload) is a dedicated, clearly labelled section separate from the portfolio images upload section (PortfolioUpload). Organisers must be able to upload, view, and delete events photos independently from portfolio images after their profile is created.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-9"
+        ],
+        "quotes": [
+          "it's uploaded by organisers after making the profile",
+          "Events photos are uploaded by organisers within their event management section after profile creation"
         ]
       },
       "acceptanceCriteria": [
-        "A single utility function handles blob/Uint8Array-to-URL conversion.",
-        "All image-displaying components import and use this shared utility.",
-        "No component independently re-implements its own conversion logic."
+        "OrganizerDashboard has a clearly labelled 'Events Photos' section separate from 'Portfolio Images'",
+        "The Events Photos section uses EventPhotoUpload and only reads/writes event photos",
+        "The Portfolio Images section uses PortfolioUpload and only reads/writes portfolio images",
+        "No cross-contamination of images between the two sections"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "In the OrganizerProfileView component, ensure the portfolio gallery section only displays portfolio images (portfolio_images) and does not render any event photos. Event photos should not appear anywhere in the read-only organiser profile view shown to customers.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-8",
+          "msg-9"
+        ],
+        "quotes": [
+          "Portfolio image is going in events photos",
+          "Yes completely separate"
+        ]
+      },
+      "acceptanceCriteria": [
+        "OrganizerProfileView portfolio gallery renders only portfolio_images from the organiser profile",
+        "Event photos are not shown in OrganizerProfileView",
+        "The portfolio gallery shows an empty state if no portfolio images exist"
       ]
     }
   ],
   "constraints": [
-    "Do not modify backend/main.mo data storage format — the fix must be entirely on the frontend image conversion layer.",
-    "Do not edit files listed in frontend.immutablePaths."
+    "Do not change the existing data model for portfolio_images on OrganizerProfile or the EventPhoto type in the backend",
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui"
   ],
   "nonGoals": [
-    "Changing the backend blob storage mechanism or data model.",
-    "Adding new image upload features or changing upload limits.",
-    "Redesigning the gallery or lightbox UI layout."
+    "Adding a new events photos section visible inside the organiser profile view page for customers",
+    "Allowing customers to upload any images",
+    "Redesigning the overall Find Organisers page layout",
+    "Adding real-time photo updates"
   ],
   "imageRequirements": {
     "required": [],

@@ -1,81 +1,103 @@
-import type { OrganizerProfile } from '../../backend';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Phone, Briefcase, DollarSign, Star, FileText } from 'lucide-react';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Star, Clock, DollarSign, Phone, FileText } from 'lucide-react';
 import PortfolioGallery from './PortfolioGallery';
+import type { OrganizerProfile } from '../../backend';
 
 interface OrganizerProfileViewProps {
-  organizer: OrganizerProfile;
+  profile: OrganizerProfile;
 }
 
-export default function OrganizerProfileView({ organizer }: OrganizerProfileViewProps) {
+export default function OrganizerProfileView({ profile }: OrganizerProfileViewProps) {
+  const isAvailable = profile.availabilityStatus === 'available';
+
   return (
     <div className="space-y-6">
-      <Card className="shadow-soft">
+      {/* Profile Header */}
+      <Card className="border-navy-200">
         <CardHeader>
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-2xl text-navy">{organizer.companyName}</CardTitle>
+          <div className="flex items-start justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="text-2xl font-playfair text-navy-900">
+                {profile.companyName}
+              </CardTitle>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Organizer since{' '}
+                {new Date(Number(profile.createdAt) / 1_000_000).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                })}
+              </p>
+            </div>
             <Badge
-              variant={organizer.availabilityStatus === 'available' ? 'default' : 'secondary'}
+              variant={isAvailable ? 'default' : 'secondary'}
+              className={
+                isAvailable
+                  ? 'bg-green-100 text-green-800 border-green-200'
+                  : 'bg-gray-100 text-gray-600'
+              }
             >
-              {organizer.availabilityStatus === 'available' ? 'Available' : 'Busy'}
+              {isAvailable ? 'Available' : 'Busy'}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-3 bg-gold/10 p-3 rounded-lg border border-gold/20">
-            <Phone className="h-5 w-5 text-gold" />
-            <div>
-              <p className="text-xs text-gray-500">Contact Number</p>
-              <p className="font-bold text-navy text-lg">{organizer.contactNumber}</p>
+          {/* Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="flex flex-col items-center p-3 bg-navy-50 rounded-lg">
+              <Clock className="w-5 h-5 text-gold-500 mb-1" />
+              <span className="text-lg font-bold text-navy-900">
+                {Number(profile.experienceYears)}
+              </span>
+              <span className="text-xs text-muted-foreground">Years Exp.</span>
+            </div>
+            <div className="flex flex-col items-center p-3 bg-navy-50 rounded-lg">
+              <Star className="w-5 h-5 text-gold-500 fill-gold-500 mb-1" />
+              <span className="text-lg font-bold text-navy-900">
+                {Number(profile.totalReviews)}
+              </span>
+              <span className="text-xs text-muted-foreground">Reviews</span>
+            </div>
+            <div className="flex flex-col items-center p-3 bg-navy-50 rounded-lg">
+              <DollarSign className="w-5 h-5 text-gold-500 mb-1" />
+              <span className="text-sm font-bold text-navy-900 text-center">
+                {profile.pricingRange}
+              </span>
+              <span className="text-xs text-muted-foreground">Pricing</span>
+            </div>
+            <div className="flex flex-col items-center p-3 bg-navy-50 rounded-lg">
+              <Phone className="w-5 h-5 text-gold-500 mb-1" />
+              <span className="text-sm font-bold text-navy-900 text-center">
+                {profile.contactNumber}
+              </span>
+              <span className="text-xs text-muted-foreground">Contact</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-gray-500" />
-              <div>
-                <p className="text-xs text-gray-500">Experience</p>
-                <p className="font-semibold">{organizer.experienceYears.toString()} years</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-gray-500" />
-              <div>
-                <p className="text-xs text-gray-500">Pricing</p>
-                <p className="font-semibold">{organizer.pricingRange}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-gold fill-gold" />
-              <div>
-                <p className="text-xs text-gray-500">Reviews</p>
-                <p className="font-semibold">{organizer.totalReviews.toString()}</p>
-              </div>
-            </div>
-          </div>
-
-          {organizer.description && (
-            <div className="flex items-start gap-2">
-              <FileText className="h-4 w-4 text-gray-500 mt-1" />
-              <div>
-                <p className="text-xs text-gray-500">Description</p>
-                <p className="text-sm text-gray-700">{organizer.description}</p>
-              </div>
+          {/* Description */}
+          {profile.description && (
+            <div className="flex gap-2">
+              <FileText className="w-4 h-4 text-gold-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-muted-foreground">{profile.description}</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Portfolio Gallery — pass images directly from the profile */}
-      <Card className="shadow-soft">
+      {/* Portfolio Images — only portfolio_images, never event photos */}
+      <Card className="border-navy-200">
         <CardHeader>
-          <CardTitle className="text-xl text-navy">Portfolio</CardTitle>
+          <CardTitle className="text-lg font-playfair text-navy-900">Portfolio</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Showcase images from this organizer's portfolio.
+          </p>
         </CardHeader>
         <CardContent>
-          <PortfolioGallery images={organizer.portfolio_images} organizerName={organizer.companyName} />
+          <PortfolioGallery
+            images={profile.portfolio_images}
+            organizerName={profile.companyName}
+          />
         </CardContent>
       </Card>
     </div>

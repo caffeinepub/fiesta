@@ -194,9 +194,16 @@ export const idlService = IDL.Service({
       [IDL.Vec(PortfolioImage)],
       ['query'],
     ),
+  'getOrganizerProfile' : IDL.Func([], [IDL.Opt(OrganizerProfile)], ['query']),
   'getOrganizerReviews' : IDL.Func(
       [IDL.Principal],
       [IDL.Vec(Review)],
+      ['query'],
+    ),
+  'getPortfolioImages' : IDL.Func([], [IDL.Vec(PortfolioImage)], ['query']),
+  'getPublicEventPhotos' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(EventPhoto)],
       ['query'],
     ),
   'getReview' : IDL.Func([IDL.Nat], [Review], ['query']),
@@ -423,9 +430,20 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(PortfolioImage)],
         ['query'],
       ),
+    'getOrganizerProfile' : IDL.Func(
+        [],
+        [IDL.Opt(OrganizerProfile)],
+        ['query'],
+      ),
     'getOrganizerReviews' : IDL.Func(
         [IDL.Principal],
         [IDL.Vec(Review)],
+        ['query'],
+      ),
+    'getPortfolioImages' : IDL.Func([], [IDL.Vec(PortfolioImage)], ['query']),
+    'getPublicEventPhotos' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(EventPhoto)],
         ['query'],
       ),
     'getReview' : IDL.Func([IDL.Nat], [Review], ['query']),

@@ -16,10 +16,35 @@ export default {
         },
         extend: {
             colors: {
+                // Single token aliases (legacy)
                 navy: 'hsl(var(--navy))',
                 'navy-dark': 'hsl(var(--navy-dark))',
                 gold: 'hsl(var(--gold))',
                 'gold-dark': 'hsl(var(--gold-dark))',
+                // Navy scale
+                'navy-50':  'hsl(212 100% 97%)',
+                'navy-100': 'hsl(212 100% 93%)',
+                'navy-200': 'hsl(212 80% 85%)',
+                'navy-300': 'hsl(212 70% 70%)',
+                'navy-400': 'hsl(212 65% 55%)',
+                'navy-500': 'hsl(212 80% 40%)',
+                'navy-600': 'hsl(212 90% 32%)',
+                'navy-700': 'hsl(212 95% 27%)',
+                'navy-800': 'hsl(212 100% 22%)',
+                'navy-900': 'hsl(212 100% 18%)',
+                'navy-950': 'hsl(212 100% 12%)',
+                // Gold scale
+                'gold-50':  'hsl(43 100% 97%)',
+                'gold-100': 'hsl(43 100% 92%)',
+                'gold-200': 'hsl(43 90% 82%)',
+                'gold-300': 'hsl(43 80% 70%)',
+                'gold-400': 'hsl(43 75% 60%)',
+                'gold-500': 'hsl(43 74% 49%)',
+                'gold-600': 'hsl(43 74% 40%)',
+                'gold-700': 'hsl(43 74% 32%)',
+                'gold-800': 'hsl(43 74% 24%)',
+                'gold-900': 'hsl(43 74% 16%)',
+                // Semantic tokens
                 border: 'hsl(var(--border))',
                 input: 'hsl(var(--input))',
                 ring: 'hsl(var(--ring))',
@@ -72,7 +97,8 @@ export default {
             },
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'sans-serif'],
-                serif: ['Playfair Display', 'Georgia', 'serif']
+                serif: ['Playfair Display', 'Georgia', 'serif'],
+                playfair: ['Playfair Display', 'Georgia', 'serif']
             },
             keyframes: {
                 'accordion-down': {

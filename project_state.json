@@ -1,69 +1,43 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Platform for finding event organisers. Fixing portfolio images appearing in events photos section, and making events photos visible to customers on Find Organisers page via View button preview.",
+  "summary": "Event organiser booking platform with an Organiser Dashboard, Find Organisers page, and Bookings page. Multiple UI and functional issues being fixed.",
   "architectural_notes": [],
   "known_issues": [
-    "Portfolio images incorrectly appearing in events photos section",
-    "Events photos not visible to customers on Find Organisers page"
+    "Bookings page does not update in real-time after booking an organiser — needs live/real-time sync",
+    "View Booking Requests should display inline within the Organiser Dashboard (not a separate page)",
+    "Book Now button on Find Organisers title card has a colour contrast issue — button exists but text is not visible"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-organizercard-component-and-its-associated-lightbox-gallery-eventphotolightbox-in-the-find-organisers-page-so-that-clicking-the-view-button-on-an-organiser-card-shows-that-organiser-s-events-photos-eventphoto-records-not-their-portfolio-images",
-      "title": "Fix the OrganizerCard component and its associated lightbox/gallery (EventPhotoLightbox) in the Find Organisers page so that clicking the 'View' button on an organiser card shows that organiser's events photos (EventPhoto records), not their portfolio images.",
+      "id": "feature-on-the-guestbookings-page-after-a-guest-successfully-books-an-organiser-the-bookings-list-must-update-in-real-time-without-requiring-a-manual-page-refresh-invalidate-or-refetch-the-relevant-react-query-cache-entries-immediately-after-a-successful-booking-mutation",
+      "title": "On the GuestBookings page, after a guest successfully books an organiser, the bookings list must update in real-time without requiring a manual page refresh. Invalidate or refetch the relevant React Query cache entries immediately after a successful booking mutation.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-organizerdashboard-page-add-an-inline-section-e-g-expandable-panel-or-embedded-list-that-displays-the-organiser-s-incoming-booking-requests-using-organizerbookinglist-the-requests-must-be-visible-directly-within-the-dashboard-without-navigating-to-a-separate-page",
+      "title": "On the OrganizerDashboard page, add an inline section (e.g. expandable panel or embedded list) that displays the organiser's incoming booking requests using OrganizerBookingList. The requests must be visible directly within the dashboard without navigating to a separate page.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-in-the-organiser-dashboard-organizerdashboard-ensure-the-events-photos-upload-section-eventphotoupload-is-a-dedicated-clearly-labelled-section-separate-from-the-portfolio-images-upload-section-portfolioupload-organisers-must-be-able-to-upload-view-and-delete-events-photos-independently-from-portfolio-images-after-their-profile-is-created",
-      "title": "In the Organiser Dashboard (OrganizerDashboard), ensure the events photos upload section (EventPhotoUpload) is a dedicated, clearly labelled section separate from the portfolio images upload section (PortfolioUpload). Organisers must be able to upload, view, and delete events photos independently from portfolio images after their profile is created.",
+      "id": "feature-fix-the-colour-contrast-on-the-book-now-button-displayed-on-the-organizercard-title-card-in-the-guestorganizerbrowsing-find-organisers-page-the-button-element-is-rendering-but-its-text-label-is-not-visible-update-the-button-s-text-colour-or-background-so-the-label-is-clearly-legible-against-its-background-consistent-with-the-navy-gold-theme-defined-in-tailwind-config-js",
+      "title": "Fix the colour contrast on the 'Book Now' button displayed on the OrganizerCard title card in the GuestOrganizerBrowsing (Find Organisers) page. The button element is rendering but its text label is not visible — update the button's text colour or background so the label is clearly legible against its background, consistent with the navy/gold theme defined in tailwind.config.js.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-in-the-organizerprofileview-component-ensure-the-portfolio-gallery-section-only-displays-portfolio-images-portfolio-images-and-does-not-render-any-event-photos-event-photos-should-not-appear-anywhere-in-the-read-only-organiser-profile-view-shown-to-customers",
-      "title": "In the OrganizerProfileView component, ensure the portfolio gallery section only displays portfolio images (portfolio_images) and does not render any event photos. Event photos should not appear anywhere in the read-only organiser profile view shown to customers.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Separate portfolio images from events photos — portfolio only in dedicated Portfolio section, events photos tied to specific events",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Show events photos preview to customers via View button on organiser cards in Find Organisers page",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Events photos uploaded by organisers within event management section after profile creation",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Ensure portfolio images and events photos are completely separate data sections in the backend. Portfolio images (portfolio_images field on OrganizerProfile) must never appear in the events photos section, and event photos (EventPhoto type stored per event) must never appear in the portfolio section.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    }
-  ],
+  "new_feature_requests": [],
   "gameProjectType": "none",
-  "projectName": "Find Organisers",
+  "projectName": "FIESTA",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,99 +1,78 @@
 {
   "kind": "build_request",
-  "title": "Separate portfolio & events photos, fix customer visibility on Find Organisers page",
+  "title": "Fix real-time bookings, inline booking requests, and Book Now button contrast",
   "projectName": "FIESTA",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Ensure portfolio images and events photos are completely separate data sections in the backend. Portfolio images (portfolio_images field on OrganizerProfile) must never appear in the events photos section, and event photos (EventPhoto type stored per event) must never appear in the portfolio section.",
-      "target": "backend",
+      "text": "On the GuestBookings page, after a guest successfully books an organiser, the bookings list must update in real-time without requiring a manual page refresh. Invalidate or refetch the relevant React Query cache entries immediately after a successful booking mutation.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-8",
-          "msg-9"
+          "msg-1"
         ],
         "quotes": [
-          "Portfolio image is going in events photos",
-          "Yes completely separate"
+          "My bookings page is not updating after booking an organiser",
+          "Real time"
         ]
       },
       "acceptanceCriteria": [
-        "Portfolio images are stored only in OrganizerProfile.portfolio_images",
-        "Event photos are stored only under their respective events (EventPhoto records)",
-        "No query or update method returns portfolio images in place of event photos or vice versa"
+        "After submitting a booking request via BookingRequestModal, the GuestBookings page reflects the new booking without a manual refresh.",
+        "The bookings query cache is invalidated or refetched on successful booking mutation."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the OrganizerCard component and its associated lightbox/gallery (EventPhotoLightbox) in the Find Organisers page so that clicking the 'View' button on an organiser card shows that organiser's events photos (EventPhoto records), not their portfolio images.",
+      "text": "On the OrganizerDashboard page, add an inline section (e.g. expandable panel or embedded list) that displays the organiser's incoming booking requests using OrganizerBookingList. The requests must be visible directly within the dashboard without navigating to a separate page.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-8",
-          "msg-9"
+          "msg-1",
+          "msg-3"
         ],
         "quotes": [
-          "events photos is not visible for customers in find organisers page",
-          "preview, in that button view work"
+          "there was a button to view booking requests in organisers dashboard",
+          "within the the dashboard",
+          "Displayed inline within the Organiser Dashboard"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking 'View' on an organiser card in the Find Organisers page (GuestOrganizerBrowsing) opens a gallery/lightbox showing only that organiser's event photos",
-        "Portfolio images do not appear in this lightbox",
-        "If the organiser has no event photos uploaded, the lightbox/gallery shows an appropriate empty state message"
+        "OrganizerDashboard contains a visible section showing the organiser's booking requests inline.",
+        "The booking requests section uses OrganizerBookingList or OrganizerBookingCard components.",
+        "No navigation to a separate page is required to view booking requests."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "In the Organiser Dashboard (OrganizerDashboard), ensure the events photos upload section (EventPhotoUpload) is a dedicated, clearly labelled section separate from the portfolio images upload section (PortfolioUpload). Organisers must be able to upload, view, and delete events photos independently from portfolio images after their profile is created.",
+      "text": "Fix the colour contrast on the 'Book Now' button displayed on the OrganizerCard title card in the GuestOrganizerBrowsing (Find Organisers) page. The button element is rendering but its text label is not visible — update the button's text colour or background so the label is clearly legible against its background, consistent with the navy/gold theme defined in tailwind.config.js.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-9"
+          "msg-1",
+          "msg-3"
         ],
         "quotes": [
-          "it's uploaded by organisers after making the profile",
-          "Events photos are uploaded by organisers within their event management section after profile creation"
+          "the book now button on title card of organisers on find organisers page the text is not visible",
+          "colour contrast issue- the button is there just the text isn't visible"
         ]
       },
       "acceptanceCriteria": [
-        "OrganizerDashboard has a clearly labelled 'Events Photos' section separate from 'Portfolio Images'",
-        "The Events Photos section uses EventPhotoUpload and only reads/writes event photos",
-        "The Portfolio Images section uses PortfolioUpload and only reads/writes portfolio images",
-        "No cross-contamination of images between the two sections"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "In the OrganizerProfileView component, ensure the portfolio gallery section only displays portfolio images (portfolio_images) and does not render any event photos. Event photos should not appear anywhere in the read-only organiser profile view shown to customers.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8",
-          "msg-9"
-        ],
-        "quotes": [
-          "Portfolio image is going in events photos",
-          "Yes completely separate"
-        ]
-      },
-      "acceptanceCriteria": [
-        "OrganizerProfileView portfolio gallery renders only portfolio_images from the organiser profile",
-        "Event photos are not shown in OrganizerProfileView",
-        "The portfolio gallery shows an empty state if no portfolio images exist"
+        "The 'Book Now' button text is clearly visible on the OrganizerCard title card.",
+        "The button text colour has sufficient contrast against the button background colour (WCAG AA minimum).",
+        "The fix is consistent with the navy/gold theme tokens defined in the project."
       ]
     }
   ],
   "constraints": [
-    "Do not change the existing data model for portfolio_images on OrganizerProfile or the EventPhoto type in the backend",
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui"
+    "Do not alter immutable frontend paths (useInternetIdentity, useActor, main.tsx, components/ui).",
+    "All Motoko logic must remain in backend/main.mo as a single actor.",
+    "Real-time updates must be achieved via React Query cache invalidation, not WebSockets or polling."
   ],
   "nonGoals": [
-    "Adding a new events photos section visible inside the organiser profile view page for customers",
-    "Allowing customers to upload any images",
-    "Redesigning the overall Find Organisers page layout",
-    "Adding real-time photo updates"
+    "Adding a separate Booking Requests page or route.",
+    "Changing the overall colour theme or design system.",
+    "Any backend schema changes."
   ],
   "imageRequirements": {
     "required": [],

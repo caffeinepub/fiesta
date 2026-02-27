@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ export default function BookingRequestModal({
   organizerName,
 }: BookingRequestModalProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { identity } = useInternetIdentity();
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
@@ -49,6 +51,9 @@ export default function BookingRequestModal({
         eventId: BigInt(selectedEventId),
         organizerId: organizerId,
       });
+
+      // Invalidate guest bookings so the bookings page updates in real-time
+      queryClient.invalidateQueries({ queryKey: ['guestBookings'] });
 
       setSuccessMessage('Booking request sent successfully!');
 
@@ -76,7 +81,7 @@ export default function BookingRequestModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-navy">Book {organizerName}</DialogTitle>
+          <DialogTitle className="text-2xl text-navy-900">Book {organizerName}</DialogTitle>
           <DialogDescription>
             Select an event to request a booking with this organizer.
           </DialogDescription>
@@ -101,7 +106,7 @@ export default function BookingRequestModal({
               </Alert>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="event" className="text-navy font-semibold">
+                <Label htmlFor="event" className="text-navy-900 font-semibold">
                   Select Event
                 </Label>
                 <Select value={selectedEventId} onValueChange={setSelectedEventId}>
@@ -112,7 +117,7 @@ export default function BookingRequestModal({
                     {events.map((event) => (
                       <SelectItem key={event.id.toString()} value={event.id.toString()}>
                         <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-gold" />
+                          <Calendar className="h-4 w-4 text-gold-500" />
                           <span className="capitalize">
                             {event.eventType} - {event.locationType} (
                             {event.numberOfGuests.toString()} guests)
@@ -151,7 +156,7 @@ export default function BookingRequestModal({
                     handleClose();
                     navigate({ to: '/guest/events' });
                   }}
-                  className="bg-navy hover:bg-navy/90"
+                  className="bg-navy-900 hover:bg-navy-800 text-white"
                 >
                   Create Event
                 </Button>
@@ -159,7 +164,7 @@ export default function BookingRequestModal({
                 <Button
                   type="submit"
                   disabled={!selectedEventId || createBookingMutation.isPending}
-                  className="bg-navy hover:bg-navy/90"
+                  className="bg-navy-900 hover:bg-navy-800 text-white"
                 >
                   {createBookingMutation.isPending
                     ? 'Sending Request...'

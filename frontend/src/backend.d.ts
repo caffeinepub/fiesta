@@ -133,7 +133,10 @@ export interface backendInterface {
     getOrganizer(organizerId: Principal): Promise<OrganizerProfile>;
     getOrganizerBookings(organizerId: Principal): Promise<Array<Booking>>;
     getOrganizerPortfolioImages(organizerId: Principal): Promise<Array<PortfolioImage>>;
+    getOrganizerProfile(): Promise<OrganizerProfile | null>;
     getOrganizerReviews(organizerId: Principal): Promise<Array<Review>>;
+    getPortfolioImages(): Promise<Array<PortfolioImage>>;
+    getPublicEventPhotos(organizerId: Principal): Promise<Array<EventPhoto>>;
     getReview(reviewId: bigint): Promise<Review>;
     getReviewsForEvent(eventId: bigint): Promise<Array<Review>>;
     getReviewsForOrganizer(organizerId: Principal): Promise<Array<Review>>;

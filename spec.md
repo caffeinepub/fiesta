@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Separate portfolio images and event photos into completely distinct data sections, and fix the Find Organisers page so customers can view organisers' event photos correctly.
+**Goal:** Fix three frontend issues: real-time booking list updates on the GuestBookings page, inline booking requests on the OrganizerDashboard, and a visible "Book Now" button on OrganizerCard.
 
 **Planned changes:**
-- Ensure backend queries and mutations for portfolio images (`OrganizerProfile.portfolio_images`) and event photos (`EventPhoto` records) are fully isolated — no cross-contamination between the two
-- Fix the `OrganizerCard` / `EventPhotoLightbox` on the Find Organisers page so the "View" button loads only that organiser's event photos (not portfolio images), with an empty state if none exist
-- In the Organiser Dashboard, separate the "Events Photos" upload section (`EventPhotoUpload`) from the "Portfolio Images" upload section (`PortfolioUpload`) with clear labels, each reading/writing only their respective data
-- In `OrganizerProfileView`, ensure the portfolio gallery renders only `portfolio_images` and never displays event photos
+- Invalidate or refetch the React Query bookings cache immediately after a successful booking mutation so the GuestBookings page updates in real-time without a manual refresh.
+- Add an inline section to OrganizerDashboard that displays the organiser's incoming booking requests using OrganizerBookingList/OrganizerBookingCard components, without navigating to a separate page.
+- Fix the colour contrast on the "Book Now" button in OrganizerCard so the button text is clearly visible, consistent with the navy/gold theme.
 
-**User-visible outcome:** Organisers can upload and manage event photos independently from portfolio images in their dashboard. Customers browsing the Find Organisers page can click "View" on an organiser card to see only that organiser's event photos, while the organiser profile view correctly shows only portfolio images.
+**User-visible outcome:** Guests see their new booking appear instantly after booking an organiser; organisers can view incoming booking requests directly within their dashboard; the "Book Now" button label is clearly legible on the Find Organisers page.

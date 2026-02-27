@@ -9,16 +9,11 @@ import Iter "mo:core/Iter";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
-import Migration "migration";
-
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 
-// with-migration is required for persistent state changes
-
-(with migration = Migration.run)
 actor {
   // Initialize authorization system state and mixin
   let accessControlState = AccessControl.initState();
@@ -224,6 +219,15 @@ actor {
     organizers.add(caller, newProfile);
   };
 
+  // Get Organizer Profile for the caller (Organiser Dashboard)
+  // Only the organizer themselves or an admin can view their own profile via this endpoint
+  public query ({ caller }) func getOrganizerProfile() : async ?OrganizerProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view their organizer profile");
+    };
+    organizers.get(caller);
+  };
+
   // Event Creation - Only authenticated users (guests) can create events
   public shared ({ caller }) func createEvent(
     eventType : EventType,
@@ -422,7 +426,23 @@ actor {
   public query ({ caller }) func getOrganizerPortfolioImages(organizerId : Principal) : async [PortfolioImage] {
     switch (organizers.get(organizerId)) {
       case (null) {
-        Runtime.trap("Organizer profile not found");
+        [];
+      };
+      case (?organizer) {
+        organizer.portfolio_images;
+      };
+    };
+  };
+
+  // Get Portfolio Images for the caller organizer (Organiser Dashboard)
+  // Only the organizer themselves can retrieve their own portfolio images via this endpoint
+  public query ({ caller }) func getPortfolioImages() : async [PortfolioImage] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view their portfolio images");
+    };
+    switch (organizers.get(caller)) {
+      case (null) {
+        [];
       };
       case (?organizer) {
         organizer.portfolio_images;
@@ -431,10 +451,11 @@ actor {
   };
 
   // Get Portfolio Images for Event - Returns portfolio images from organizers who have bookings for this event
+  // Fixed: properly handle the null case without returning a mismatched type
   public query ({ caller }) func getEventPortfolioImages(eventId : Nat) : async [PortfolioImage] {
     let event = switch (events.get(eventId)) {
       case (null) {
-        Runtime.trap("Event not found");
+        return [];
       };
       case (?event) { event };
     };
@@ -496,10 +517,11 @@ actor {
   };
 
   // Get Event Bookings - Only event owner or admin can view
+  // Fixed: properly handle the null case without returning a mismatched type
   public query ({ caller }) func getEventBookings(eventId : Nat) : async [Booking] {
     let event = switch (events.get(eventId)) {
       case (null) {
-        Runtime.trap("Event not found");
+        return [];
       };
       case (?event) {
         event;
@@ -815,14 +837,11 @@ actor {
     };
 
     // Verify caller has an organizer profile
-    let organizer = switch (organizers.get(caller)) {
+    switch (organizers.get(caller)) {
       case (null) {
         Runtime.trap("Unauthorized: Only organizers can upload event photos. Create an organizer profile first.");
       };
-      case (?_) {
-        // Only check for existence
-        true;
-      };
+      case (?_) { /* Organizer profile exists, proceed */ };
     };
 
     let photoId = photoIdCounter;
@@ -843,21 +862,39 @@ actor {
     photoId;
   };
 
-  // Get Event Photos for Organizer - Only the organizer can retrieve their own photos
+  // Get Public Event Photos for Organizer - Anyone can retrieve an organizer's public photos
+  public query ({ caller }) func getPublicEventPhotos(organizerId : Principal) : async [EventPhoto] {
+    switch (organizers.get(organizerId)) {
+      case (null) {
+        Runtime.trap("Organizer profile not found.");
+      };
+      case (?_) {
+        /* Only check for existence */
+      };
+    };
+
+    let filteredPhotos = eventPhotos.values().toArray().filter(
+      func(photo) {
+        photo.owner == organizerId;
+      }
+    );
+
+    filteredPhotos;
+  };
+
+  // Get Event Photos for the caller organizer (Organiser Dashboard)
+  // Only the organizer themselves can retrieve their own photos via this endpoint
   public query ({ caller }) func getEventPhotos() : async [EventPhoto] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view event photos");
     };
 
     // Verify caller has an organizer profile
-    let _ = switch (organizers.get(caller)) {
+    switch (organizers.get(caller)) {
       case (null) {
         Runtime.trap("Organizer profile not found.");
       };
-      case (?_) {
-        // Only check for existence
-        true;
-      };
+      case (?_) { /* Organizer profile exists, proceed */ };
     };
 
     let filteredPhotos = eventPhotos.values().toArray().filter(

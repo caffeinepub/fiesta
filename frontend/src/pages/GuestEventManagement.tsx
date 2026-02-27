@@ -3,13 +3,14 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetGuestEvents } from '../hooks/useQueries';
 import CreateEventForm from '../components/events/CreateEventForm';
 import EventList from '../components/events/EventList';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useEffect } from 'react';
 
 export default function GuestEventManagement() {
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const { data: events, isLoading } = useGetGuestEvents();
+  const principalId = identity?.getPrincipal().toString();
+  const { data: events, isLoading } = useGetGuestEvents(principalId);
 
   useEffect(() => {
     if (!identity) {
@@ -24,7 +25,7 @@ export default function GuestEventManagement() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-navy mb-8">My Events</h1>
-      
+
       <div className="grid lg:grid-cols-2 gap-8">
         <Card className="shadow-soft">
           <CardHeader>

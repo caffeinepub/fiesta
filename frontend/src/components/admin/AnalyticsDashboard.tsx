@@ -1,10 +1,10 @@
-import { useGetAllOrganizers, useGetAllEvents } from '../../hooks/useQueries';
+import { useGetAllOrganizers, useGetAllEventsAdmin } from '../../hooks/useQueries';
 import AnalyticsCard from './AnalyticsCard';
 import { Users, Building2, Calendar, TrendingUp, Star } from 'lucide-react';
 
 export default function AnalyticsDashboard() {
   const { data: organizers, isLoading: organizersLoading } = useGetAllOrganizers();
-  const { data: events, isLoading: eventsLoading } = useGetAllEvents();
+  const { data: events, isLoading: eventsLoading } = useGetAllEventsAdmin();
 
   if (organizersLoading || eventsLoading) {
     return <p className="text-gray-500">Loading analytics...</p>;

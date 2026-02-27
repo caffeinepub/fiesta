@@ -1,84 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Separate portfolio & events photos, fix customer visibility on Find Organisers page",
+  "title": "Fix real-time bookings, inline booking requests, and Book Now button contrast",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Fix OrganizerCard and EventPhotoLightbox to show event photos instead of portfolio images when clicking 'View' button",
+      "id": "REQ-1",
+      "summary": "Invalidate React Query cache after successful booking to update GuestBookings page in real-time",
       "acceptanceCriteria": [
-        "Clicking 'View' on an organiser card in the Find Organisers page (GuestOrganizerBrowsing) opens a gallery/lightbox showing only that organiser's event photos",
-        "Portfolio images do not appear in this lightbox",
-        "If the organiser has no event photos uploaded, the lightbox/gallery shows an appropriate empty state message"
+        "After submitting a booking request via BookingRequestModal, the GuestBookings page reflects the new booking without a manual refresh.",
+        "The bookings query cache is invalidated or refetched on successful booking mutation."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/booking/BookingRequestModal.tsx",
           "operation": "modify",
-          "description": "Add a new React Query hook useGetOrganizerEventPhotos that fetches all event photos (EventPhoto[]) from the backend and filters them to return only photos owned by a specific organizer Principal. This hook will be used by EventPhotoLightbox to display the correct event photos for each organizer."
-        },
-        {
-          "path": "frontend/src/components/organizer/EventPhotoLightbox.tsx",
-          "operation": "modify",
-          "description": "Refactor EventPhotoLightbox to accept an organizerId prop and use the new useGetOrganizerEventPhotos hook to fetch and display event photos (EventPhoto records) instead of portfolio_images. Update the component to map EventPhoto.blob to displayable URLs using imageUtils. Show an empty state message 'No event photos available' when the organizer has no event photos. Verify the blob-storage component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/GuestOrganizerBrowsing.tsx",
-          "operation": "modify",
-          "description": "Update the GuestOrganizerBrowsing page to pass the correct organizerId to EventPhotoLightbox when opening the lightbox after clicking 'View' on an OrganizerCard. Ensure the lightbox state management tracks which organizer's event photos should be displayed."
-        },
-        {
-          "path": "frontend/src/components/organizer/OrganizerCard.tsx",
-          "operation": "modify",
-          "description": "Ensure the 'View' button click handler in OrganizerCard correctly triggers the EventPhotoLightbox with the organizer's userId (Principal). Confirm the button wiring opens the lightbox to display event photos, not portfolio images."
+          "description": "After the successful booking mutation in BookingRequestModal, add a call to queryClient.invalidateQueries({ queryKey: ['guestBookings'] }) to force the GuestBookings page to refetch the updated bookings list. This ensures the new booking appears immediately without requiring a manual page refresh."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Ensure OrganizerDashboard has clearly separated sections for events photos and portfolio images upload",
+      "id": "REQ-2",
+      "summary": "Display organizer's incoming booking requests inline within OrganizerDashboard using OrganizerBookingList",
       "acceptanceCriteria": [
-        "OrganizerDashboard has a clearly labelled 'Events Photos' section separate from 'Portfolio Images'",
-        "The Events Photos section uses EventPhotoUpload and only reads/writes event photos",
-        "The Portfolio Images section uses PortfolioUpload and only reads/writes portfolio images",
-        "No cross-contamination of images between the two sections"
+        "OrganizerDashboard contains a visible section showing the organiser's booking requests inline.",
+        "The booking requests section uses OrganizerBookingList or OrganizerBookingCard components.",
+        "No navigation to a separate page is required to view booking requests."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/OrganizerDashboard.tsx",
           "operation": "modify",
-          "description": "Add a dedicated 'Events Photos' section to OrganizerDashboard below the 'Portfolio Images' section. This section should render the EventPhotoUpload component with a clear heading 'Events Photos' and descriptive text explaining these are photos from past events. Ensure the layout visually separates this section from the portfolio section using spacing and borders. Verify the blob-storage component's usage instructions before implementing EventPhotoUpload integration."
-        },
-        {
-          "path": "frontend/src/components/organizer/EventPhotoUpload.tsx",
-          "operation": "modify",
-          "description": "Ensure EventPhotoUpload uses the uploadEventPhoto mutation hook (or create one if missing in useQueries.ts) that calls backend.uploadEventPhoto with the ExternalBlob. Confirm the component fetches event photos using a hook that calls backend.getEventPhotos() and filters by the current organizer's Principal. Ensure delete functionality calls backend.deleteEventPhoto(photoId). Verify the blob-storage component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add or verify mutation hooks for uploadEventPhoto and deleteEventPhoto that call the corresponding backend methods. Add a query hook useGetEventPhotos that fetches all event photos and optionally filters by owner Principal. Ensure these hooks are exported and available for EventPhotoUpload."
+          "description": "Add a new section within OrganizerDashboard that displays the organizer's incoming booking requests inline. Import and render the OrganizerBookingList component within an expandable or always-visible panel (e.g., using shadcn/ui Collapsible or Card). Fetch the organizer's bookings using the useGetOrganizerBookings hook with the current user's principal. Display the booking requests section after the profile and portfolio sections so users can view and manage requests directly in the dashboard without navigating to a separate page."
         }
       ]
     },
     {
-      "id": "REQ-4",
-      "summary": "Ensure OrganizerProfileView portfolio gallery only displays portfolio images, not event photos",
+      "id": "REQ-3",
+      "summary": "Fix Book Now button text visibility on OrganizerCard by updating text color for sufficient contrast",
       "acceptanceCriteria": [
-        "OrganizerProfileView portfolio gallery renders only portfolio_images from the organiser profile",
-        "Event photos are not shown in OrganizerProfileView",
-        "The portfolio gallery shows an empty state if no portfolio images exist"
+        "The 'Book Now' button text is clearly visible on the OrganizerCard title card.",
+        "The button text colour has sufficient contrast against the button background colour (WCAG AA minimum).",
+        "The fix is consistent with the navy/gold theme tokens defined in the project."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/organizer/OrganizerProfileView.tsx",
+          "path": "frontend/src/components/organizer/OrganizerCard.tsx",
           "operation": "modify",
-          "description": "Review OrganizerProfileView to confirm the portfolio gallery section (PortfolioGallery component) receives only the profile.portfolio_images array and does not inadvertently fetch or display event photos. Ensure the component does not call getEventPhotos or mix event photos into the portfolio display. Add an empty state message 'No portfolio images available' when portfolio_images is empty."
-        },
-        {
-          "path": "frontend/src/components/organizer/PortfolioGallery.tsx",
-          "operation": "modify",
-          "description": "Ensure PortfolioGallery accepts only a portfolio_images prop of type PortfolioImage[] and does not accept or render EventPhoto data. Confirm the gallery uses imageUtils to convert PortfolioImage objects to displayable URLs. Add an empty state if the array is empty."
+          "description": "Update the Book Now button's text color to ensure sufficient contrast against its background. If the button uses a navy or dark background, set the text color to white or a light gold token. If the button uses a gold or light background, set the text color to navy-900 or navy-950. Ensure the color combination meets WCAG AA contrast requirements (minimum 4.5:1 for normal text) and aligns with the navy/gold theme defined in frontend/tailwind.config.js. Review the current button styling and apply the appropriate Tailwind text color class (e.g., text-white, text-navy-900, or text-gold-50)."
         }
       ]
     }

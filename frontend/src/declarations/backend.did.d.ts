@@ -150,7 +150,10 @@ export interface _SERVICE {
     [Principal],
     Array<PortfolioImage>
   >,
+  'getOrganizerProfile' : ActorMethod<[], [] | [OrganizerProfile]>,
   'getOrganizerReviews' : ActorMethod<[Principal], Array<Review>>,
+  'getPortfolioImages' : ActorMethod<[], Array<PortfolioImage>>,
+  'getPublicEventPhotos' : ActorMethod<[Principal], Array<EventPhoto>>,
   'getReview' : ActorMethod<[bigint], Review>,
   'getReviewsForEvent' : ActorMethod<[bigint], Array<Review>>,
   'getReviewsForOrganizer' : ActorMethod<[Principal], Array<Review>>,

@@ -82,7 +82,7 @@ export default function OrganizerCard({ organizer, onViewWork }: OrganizerCardPr
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 border-gold-400 text-gold-600 hover:bg-gold-50 gap-1"
+                className="flex-1 border-gold-500 text-gold-700 hover:bg-gold-50 hover:text-gold-800 gap-1"
                 onClick={onViewWork}
               >
                 <Images className="w-3.5 h-3.5" />
@@ -91,7 +91,7 @@ export default function OrganizerCard({ organizer, onViewWork }: OrganizerCardPr
             )}
             <Button
               size="sm"
-              className={`flex-1 bg-navy-900 hover:bg-navy-800 text-white gap-1 ${!onViewWork ? 'w-full' : ''}`}
+              className={`flex-1 bg-navy-900 hover:bg-navy-800 text-white font-semibold gap-1 ${!onViewWork ? 'w-full' : ''}`}
               onClick={() => setBookingOpen(true)}
               disabled={!isAvailable}
             >

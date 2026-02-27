@@ -65,6 +65,29 @@ export function useGetCallerUserRole() {
 
 // ─── Organizer Profile ───────────────────────────────────────────────────────
 
+/**
+ * Fetches the caller's own organizer profile.
+ * Returns null if no profile exists yet (does NOT trap).
+ * Use this in the Organizer Dashboard.
+ */
+export function useGetOrganizerProfile() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const query = useQuery<OrganizerProfile | null>({
+    queryKey: ['organizerProfile'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getOrganizerProfile();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
 export function useGetOrganizer(organizerId?: string) {
   const { actor, isFetching } = useActor();
   return useQuery<OrganizerProfile>({
@@ -99,6 +122,7 @@ export function useSaveOrganizerProfile() {
       return actor.saveOrganizerProfile(profile);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organizerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['organizer'] });
       queryClient.invalidateQueries({ queryKey: ['allOrganizers'] });
     },
@@ -119,6 +143,32 @@ export function useGetOrganizerPortfolioImages(organizerId?: string) {
   });
 }
 
+/**
+ * Fetches portfolio images for the caller organizer from the dashboard endpoint.
+ * Returns empty array if no organizer profile exists.
+ */
+export function useGetCallerPortfolioImages() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const query = useQuery<PortfolioImage[]>({
+    queryKey: ['callerPortfolioImages'],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getPortfolioImages();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
 export function useAddPortfolioImage() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -134,7 +184,9 @@ export function useAddPortfolioImage() {
       return photoId;
     },
     onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['callerPortfolioImages'] });
       queryClient.invalidateQueries({ queryKey: ['portfolioImages', variables.organizerId] });
+      queryClient.invalidateQueries({ queryKey: ['organizerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['organizer', variables.organizerId] });
       queryClient.invalidateQueries({ queryKey: ['allOrganizers'] });
     },
@@ -150,7 +202,9 @@ export function useDeletePortfolioImage() {
       return actor.deletePortfolioImage(filename);
     },
     onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['callerPortfolioImages'] });
       queryClient.invalidateQueries({ queryKey: ['portfolioImages', variables.organizerId] });
+      queryClient.invalidateQueries({ queryKey: ['organizerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['organizer', variables.organizerId] });
       queryClient.invalidateQueries({ queryKey: ['allOrganizers'] });
     },
@@ -159,48 +213,50 @@ export function useDeletePortfolioImage() {
 
 // ─── Event Photos ─────────────────────────────────────────────────────────────
 
+/**
+ * Fetches event photos for the caller organizer from the dashboard endpoint.
+ * Returns empty array if no organizer profile exists (catches trap).
+ */
 export function useGetEventPhotos() {
-  const { actor, isFetching } = useActor();
-  return useQuery<EventPhoto[]>({
+  const { actor, isFetching: actorFetching } = useActor();
+  const query = useQuery<EventPhoto[]>({
     queryKey: ['eventPhotos'],
     queryFn: async () => {
       if (!actor) return [];
       try {
         return await actor.getEventPhotos();
       } catch {
+        // Backend traps if no organizer profile exists; return empty array gracefully
         return [];
       }
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !actorFetching,
+    retry: false,
   });
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
 }
 
 /**
- * Fetches event photos for a specific organizer.
- * NOTE: The backend only exposes getEventPhotos() for the caller's own photos.
- * For the public-facing lightbox, this hook attempts the call but gracefully
- * returns an empty array if the caller is not the organizer (no public endpoint).
+ * Fetches event photos for a specific organizer using the public endpoint.
+ * Uses getPublicEventPhotos(organizerId) which is accessible by all authenticated users,
+ * so any user can view any organizer's event photos on the Find Organisers page.
  */
 export function useGetOrganizerEventPhotos(organizerId?: string) {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   return useQuery<EventPhoto[]>({
     queryKey: ['organizerEventPhotos', organizerId],
     queryFn: async () => {
       if (!actor || !organizerId) return [];
-      // If the caller IS the organizer, fetch their own photos
-      const callerPrincipal = identity?.getPrincipal().toString();
-      if (callerPrincipal === organizerId) {
-        try {
-          return await actor.getEventPhotos();
-        } catch {
-          return [];
-        }
+      try {
+        return await actor.getPublicEventPhotos(Principal.fromText(organizerId));
+      } catch {
+        return [];
       }
-      // For other callers (guests browsing), the backend has no public endpoint.
-      // Return empty array — this is a known backend limitation.
-      return [];
     },
     enabled: !!actor && !isFetching && !!organizerId,
   });
@@ -408,10 +464,10 @@ export function useGetAllOrganizersAdmin() {
   });
 }
 
-export function useGetAllEvents() {
+export function useGetAllEventsAdmin() {
   const { actor, isFetching } = useActor();
   return useQuery<Event[]>({
-    queryKey: ['allEvents'],
+    queryKey: ['allEventsAdmin'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllEvents();
@@ -420,46 +476,14 @@ export function useGetAllEvents() {
   });
 }
 
-export function useGetAllBookings() {
+export function useGetAllBookingsAdmin() {
   const { actor, isFetching } = useActor();
   return useQuery<Booking[]>({
-    queryKey: ['allBookings'],
+    queryKey: ['allBookingsAdmin'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllBookings();
     },
     enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetAllReviews() {
-  const { actor, isFetching } = useActor();
-  return useQuery<Review[]>({
-    queryKey: ['allReviews'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllReviews();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useFilterOrganizers() {
-  const { actor } = useActor();
-  return useMutation({
-    mutationFn: async (params: {
-      eventType: EventType;
-      locationType: LocationType;
-      numberOfGuests: bigint;
-      eventStyle: EventStyle;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.filterOrganizers(
-        params.eventType,
-        params.locationType,
-        params.numberOfGuests,
-        params.eventStyle,
-      );
-    },
   });
 }

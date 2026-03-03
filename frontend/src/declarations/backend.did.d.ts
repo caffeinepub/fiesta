@@ -29,7 +29,9 @@ export interface Event {
   'owner' : Principal,
   'date' : Time,
   'createdAt' : Time,
+  'description' : string,
   'contact_number' : string,
+  'image' : [] | [ExternalBlob],
   'locationType' : LocationType,
   'numberOfGuests' : bigint,
   'eventType' : EventType,
@@ -65,6 +67,10 @@ export interface OrganizerProfile {
   'availabilityStatus' : { 'busy' : null } |
     { 'available' : null },
   'portfolio_images' : Array<PortfolioImage>,
+}
+export interface PaginatedBookings {
+  'bookings' : Array<Booking>,
+  'totalCount' : bigint,
 }
 export interface PortfolioImage { 'filename' : string, 'uploaded_at' : Time }
 export interface Review {
@@ -118,9 +124,19 @@ export interface _SERVICE {
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createBooking' : ActorMethod<[bigint, Principal], bigint>,
   'createEvent' : ActorMethod<
-    [EventType, LocationType, bigint, EventStyle, string, Time],
+    [
+      EventType,
+      LocationType,
+      bigint,
+      EventStyle,
+      string,
+      Time,
+      string,
+      [] | [ExternalBlob],
+    ],
     bigint
   >,
+  'deleteEvent' : ActorMethod<[bigint], undefined>,
   'deleteEventPhoto' : ActorMethod<[bigint], boolean>,
   'deletePortfolioImage' : ActorMethod<[string], boolean>,
   'filterOrganizers' : ActorMethod<
@@ -132,6 +148,7 @@ export interface _SERVICE {
   'getAllOrganizers' : ActorMethod<[], Array<OrganizerProfile>>,
   'getAllReviews' : ActorMethod<[], Array<Review>>,
   'getBooking' : ActorMethod<[bigint], Booking>,
+  'getBookingsByGuest' : ActorMethod<[], Array<Booking>>,
   'getBookingsByStatus' : ActorMethod<[BookingStatus], Array<Booking>>,
   'getBookingsForEvent' : ActorMethod<[bigint], Array<Booking>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
@@ -143,9 +160,15 @@ export interface _SERVICE {
   'getEventReviews' : ActorMethod<[bigint], Array<Review>>,
   'getFreeOrganizers' : ActorMethod<[bigint, bigint], Array<OrganizerProfile>>,
   'getGuestBookings' : ActorMethod<[Principal], Array<Booking>>,
+  'getGuestBookingsForCaller' : ActorMethod<[], Array<Booking>>,
   'getGuestEvents' : ActorMethod<[Principal], Array<Event>>,
   'getOrganizer' : ActorMethod<[Principal], OrganizerProfile>,
   'getOrganizerBookings' : ActorMethod<[Principal], Array<Booking>>,
+  'getOrganizerBookingsForCaller' : ActorMethod<[], Array<Booking>>,
+  'getOrganizerBookingsPaginated' : ActorMethod<
+    [Principal, bigint, bigint],
+    PaginatedBookings
+  >,
   'getOrganizerPortfolioImages' : ActorMethod<
     [Principal],
     Array<PortfolioImage>
@@ -166,6 +189,20 @@ export interface _SERVICE {
   'saveOrganizerProfile' : ActorMethod<[OrganizerProfile], undefined>,
   'submitReview' : ActorMethod<[Principal, bigint, string, bigint], undefined>,
   'updateBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
+  'updateEvent' : ActorMethod<
+    [
+      bigint,
+      EventType,
+      LocationType,
+      bigint,
+      EventStyle,
+      string,
+      Time,
+      string,
+      [] | [ExternalBlob],
+    ],
+    undefined
+  >,
   'uploadEventPhoto' : ActorMethod<[ExternalBlob, string, string], bigint>,
 }
 export declare const idlService: IDL.ServiceClass;

@@ -34,7 +34,9 @@ export interface Event {
     owner: Principal;
     date: Time;
     createdAt: Time;
+    description: string;
     contact_number: string;
+    image?: ExternalBlob;
     locationType: LocationType;
     numberOfGuests: bigint;
     eventType: EventType;
@@ -50,6 +52,10 @@ export interface OrganizerProfile {
     totalReviews: bigint;
     availabilityStatus: Variant_busy_available;
     portfolio_images: Array<PortfolioImage>;
+}
+export interface PaginatedBookings {
+    bookings: Array<Booking>;
+    totalCount: bigint;
 }
 export interface Booking {
     id: bigint;
@@ -109,7 +115,8 @@ export interface backendInterface {
     addPortfolioImage(filename: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createBooking(eventId: bigint, organizerId: Principal): Promise<bigint>;
-    createEvent(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle, contact_number: string, date: Time): Promise<bigint>;
+    createEvent(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle, contact_number: string, date: Time, description: string, image: ExternalBlob | null): Promise<bigint>;
+    deleteEvent(eventId: bigint): Promise<void>;
     deleteEventPhoto(photoId: bigint): Promise<boolean>;
     deletePortfolioImage(filename: string): Promise<boolean>;
     filterOrganizers(eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle): Promise<Array<OrganizerProfile>>;
@@ -118,6 +125,7 @@ export interface backendInterface {
     getAllOrganizers(): Promise<Array<OrganizerProfile>>;
     getAllReviews(): Promise<Array<Review>>;
     getBooking(bookingId: bigint): Promise<Booking>;
+    getBookingsByGuest(): Promise<Array<Booking>>;
     getBookingsByStatus(status: BookingStatus): Promise<Array<Booking>>;
     getBookingsForEvent(eventId: bigint): Promise<Array<Booking>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -129,9 +137,12 @@ export interface backendInterface {
     getEventReviews(eventId: bigint): Promise<Array<Review>>;
     getFreeOrganizers(startTime: bigint, endTime: bigint): Promise<Array<OrganizerProfile>>;
     getGuestBookings(guestId: Principal): Promise<Array<Booking>>;
+    getGuestBookingsForCaller(): Promise<Array<Booking>>;
     getGuestEvents(guestId: Principal): Promise<Array<Event>>;
     getOrganizer(organizerId: Principal): Promise<OrganizerProfile>;
     getOrganizerBookings(organizerId: Principal): Promise<Array<Booking>>;
+    getOrganizerBookingsForCaller(): Promise<Array<Booking>>;
+    getOrganizerBookingsPaginated(organizerId: Principal, pageNumber: bigint, pageSize: bigint): Promise<PaginatedBookings>;
     getOrganizerPortfolioImages(organizerId: Principal): Promise<Array<PortfolioImage>>;
     getOrganizerProfile(): Promise<OrganizerProfile | null>;
     getOrganizerReviews(organizerId: Principal): Promise<Array<Review>>;
@@ -149,5 +160,6 @@ export interface backendInterface {
     saveOrganizerProfile(profileData: OrganizerProfile): Promise<void>;
     submitReview(organizerId: Principal, rating: bigint, comment: string, eventId: bigint): Promise<void>;
     updateBookingStatus(bookingId: bigint, status: BookingStatus): Promise<void>;
+    updateEvent(eventId: bigint, eventType: EventType, locationType: LocationType, numberOfGuests: bigint, eventStyle: EventStyle, contact_number: string, date: Time, description: string, image: ExternalBlob | null): Promise<void>;
     uploadEventPhoto(image: ExternalBlob, contentType: string, filename: string): Promise<bigint>;
 }

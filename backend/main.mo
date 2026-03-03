@@ -4,15 +4,16 @@ import Map "mo:core/Map";
 import Array "mo:core/Array";
 import Nat "mo:core/Nat";
 import Int "mo:core/Int";
-import List "mo:core/List";
-import Iter "mo:core/Iter";
 import Order "mo:core/Order";
+import List "mo:core/List";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+
+
 
 actor {
   // Initialize authorization system state and mixin
@@ -68,6 +69,8 @@ actor {
     owner : Principal;
     createdAt : Time.Time;
     date : Time.Time;
+    description : Text;
+    image : ?Storage.ExternalBlob;
   };
 
   public type PortfolioImage = {
@@ -131,6 +134,11 @@ actor {
     contentType : Text;
     filename : Text;
     uploadedAt : Time.Time;
+  };
+
+  public type PaginatedBookings = {
+    totalCount : Nat;
+    bookings : [Booking];
   };
 
   module OrganizerProfile {
@@ -236,6 +244,8 @@ actor {
     eventStyle : EventStyle,
     contact_number : Text,
     date : Time.Time,
+    description : Text,
+    image : ?Storage.ExternalBlob,
   ) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can create events");
@@ -255,10 +265,96 @@ actor {
       owner = caller;
       createdAt = Time.now();
       date;
+      description;
+      image;
     };
     events.add(eventIdCounter, event);
     eventIdCounter += 1;
     event.id;
+  };
+
+  // New Function: Update Event (with description and image)
+  public shared ({ caller }) func updateEvent(
+    eventId : Nat,
+    eventType : EventType,
+    locationType : LocationType,
+    numberOfGuests : Nat,
+    eventStyle : EventStyle,
+    contact_number : Text,
+    date : Time.Time,
+    description : Text,
+    image : ?Storage.ExternalBlob,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can update events");
+    };
+
+    switch (events.get(eventId)) {
+      case (null) {
+        Runtime.trap("Event not found for ID " # eventId.toText());
+      };
+      case (?existingEvent) {
+        if (existingEvent.owner != caller) {
+          Runtime.trap("Unauthorized: Only the event owner can update this event");
+        };
+
+        // Check for accepted bookings for the event
+        for (booking in bookings.values()) {
+          if (booking.eventId == eventId and booking.bookingStatus == #approved) {
+            Runtime.trap("Cannot update event with accepted bookings");
+          };
+        };
+
+        let updatedEvent : Event = {
+          existingEvent with
+          eventType;
+          locationType;
+          numberOfGuests;
+          eventStyle;
+          contact_number;
+          date;
+          description;
+          image;
+        };
+
+        events.add(eventId, updatedEvent);
+      };
+    };
+  };
+
+  // New Function: Delete Event (with accepted bookings check)
+  public shared ({ caller }) func deleteEvent(eventId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can delete events");
+    };
+
+    switch (events.get(eventId)) {
+      case (null) {
+        Runtime.trap("Event not found for ID " # eventId.toText());
+      };
+      case (?event) {
+        if (event.owner != caller) {
+          Runtime.trap("Unauthorized: Only the event owner can delete this event");
+        };
+
+        // Check for accepted bookings for the event
+        for (booking in bookings.values()) {
+          if (booking.eventId == eventId and booking.bookingStatus == #approved) {
+            Runtime.trap("Cannot delete event with accepted bookings");
+          };
+        };
+
+        // Delete all bookings associated with this event
+        let allBookings = bookings.toArray();
+        for ((bookingId, booking) in allBookings.values()) {
+          if (booking.eventId == eventId) {
+            bookings.remove(bookingId);
+          };
+        };
+
+        events.remove(eventId);
+      };
+    };
   };
 
   // Booking Request - Only event owners can request bookings
@@ -414,7 +510,7 @@ actor {
     );
 
     if (filteredImages.size() == organizer.portfolio_images.size()) {
-      return false; // No images were deleted
+      return false;
     };
 
     let updatedOrganizer = { organizer with portfolio_images = filteredImages };
@@ -451,7 +547,6 @@ actor {
   };
 
   // Get Portfolio Images for Event - Returns portfolio images from organizers who have bookings for this event
-  // Fixed: properly handle the null case without returning a mismatched type
   public query ({ caller }) func getEventPortfolioImages(eventId : Nat) : async [PortfolioImage] {
     let event = switch (events.get(eventId)) {
       case (null) {
@@ -496,6 +591,58 @@ actor {
     bookingList.toArray();
   };
 
+  // Get Organizer Bookings for the caller (Organiser Dashboard) - Only organizer not admin
+  public query ({ caller }) func getOrganizerBookingsForCaller() : async [Booking] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view their organizer bookings");
+    };
+    let bookingList = List.empty<Booking>();
+    for (booking in bookings.values()) {
+      if (booking.organizerId == caller) {
+        bookingList.add(booking);
+      };
+    };
+    bookingList.toArray();
+  };
+
+  // New function: Get paginated organizer bookings.
+  public query ({ caller }) func getOrganizerBookingsPaginated(
+    organizerId : Principal,
+    pageNumber : Nat,
+    pageSize : Nat,
+  ) : async PaginatedBookings {
+    if (caller != organizerId and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own bookings or be an admin");
+    };
+
+    let filteredBookings = bookings.values().toArray().filter(
+      func(b) { b.organizerId == organizerId }
+    );
+
+    let totalCount = filteredBookings.size();
+
+    let startIndex = pageNumber * pageSize;
+    let endIndex = startIndex + pageSize;
+
+    if (startIndex >= totalCount) {
+      return {
+        totalCount;
+        bookings = [];
+      };
+    };
+
+    let paginatedBookings = if (endIndex > totalCount) {
+      filteredBookings.sliceToArray(startIndex, totalCount);
+    } else {
+      filteredBookings.sliceToArray(startIndex, endIndex);
+    };
+
+    {
+      totalCount;
+      bookings = paginatedBookings;
+    };
+  };
+
   // Filter Organizers - Public query, anyone can filter organizers
   public query ({ caller }) func filterOrganizers(
     eventType : EventType,
@@ -517,7 +664,6 @@ actor {
   };
 
   // Get Event Bookings - Only event owner or admin can view
-  // Fixed: properly handle the null case without returning a mismatched type
   public query ({ caller }) func getEventBookings(eventId : Nat) : async [Booking] {
     let event = switch (events.get(eventId)) {
       case (null) {
@@ -634,6 +780,36 @@ actor {
     guestBookings.toArray();
   };
 
+  // Get Guest Bookings for the caller (Guest Dashboard) - Returns all bookings for the authenticated caller
+  // with their current status (requested, accepted, rejected, completed)
+  public query ({ caller }) func getGuestBookingsForCaller() : async [Booking] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view their bookings");
+    };
+    let guestBookings = List.empty<Booking>();
+    for (booking in bookings.values()) {
+      if (booking.guestId == caller) {
+        guestBookings.add(booking);
+      };
+    };
+    guestBookings.toArray();
+  };
+
+  // Alias: getBookingsByGuest - Returns all bookings for the authenticated caller
+  // with their current status (requested, accepted, rejected, completed)
+  public query ({ caller }) func getBookingsByGuest() : async [Booking] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view their bookings");
+    };
+    let guestBookings = List.empty<Booking>();
+    for (booking in bookings.values()) {
+      if (booking.guestId == caller) {
+        guestBookings.add(booking);
+      };
+    };
+    guestBookings.toArray();
+  };
+
   // Get Reviews for Organizer - Public query, anyone can view organizer reviews
   public query ({ caller }) func getReviewsForOrganizer(organizerId : Principal) : async [Review] {
     let organizerReviews = List.empty<Review>();
@@ -656,7 +832,7 @@ actor {
       };
     };
 
-    if (caller != event.owner and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (event.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only the event owner or admin can view event reviews");
     };
 
@@ -698,7 +874,7 @@ actor {
       };
     };
 
-    if (caller != event.owner and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (event.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only the event owner or admin can view event reviews");
     };
 
@@ -733,7 +909,7 @@ actor {
       };
     };
 
-    if (caller != event.owner and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (event.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only the event owner or admin can view event bookings");
     };
 

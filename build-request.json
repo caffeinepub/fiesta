@@ -1,78 +1,33 @@
 {
   "kind": "build_request",
-  "title": "Fix real-time bookings, inline booking requests, and Book Now button contrast",
-  "projectName": "FIESTA",
+  "title": "Move booking requests to bottom of organiser dashboard",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "On the GuestBookings page, after a guest successfully books an organiser, the bookings list must update in real-time without requiring a manual page refresh. Invalidate or refetch the relevant React Query cache entries immediately after a successful booking mutation.",
+      "text": "In the OrganizerDashboard page, reorder the dashboard sections so that the booking requests section appears after (below) both the events section and the portfolio image upload section. The final order from top to bottom should be: (1) profile view/edit, (2) events, (3) portfolio image upload, (4) booking requests.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "My bookings page is not updating after booking an organiser",
-          "Real time"
+          "in organisers dashboard the booking requests are above the events and portfolio image upload option, shift it at the end, I want booking requests in the bottom."
         ]
       },
       "acceptanceCriteria": [
-        "After submitting a booking request via BookingRequestModal, the GuestBookings page reflects the new booking without a manual refresh.",
-        "The bookings query cache is invalidated or refetched on successful booking mutation."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "On the OrganizerDashboard page, add an inline section (e.g. expandable panel or embedded list) that displays the organiser's incoming booking requests using OrganizerBookingList. The requests must be visible directly within the dashboard without navigating to a separate page.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1",
-          "msg-3"
-        ],
-        "quotes": [
-          "there was a button to view booking requests in organisers dashboard",
-          "within the the dashboard",
-          "Displayed inline within the Organiser Dashboard"
-        ]
-      },
-      "acceptanceCriteria": [
-        "OrganizerDashboard contains a visible section showing the organiser's booking requests inline.",
-        "The booking requests section uses OrganizerBookingList or OrganizerBookingCard components.",
-        "No navigation to a separate page is required to view booking requests."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Fix the colour contrast on the 'Book Now' button displayed on the OrganizerCard title card in the GuestOrganizerBrowsing (Find Organisers) page. The button element is rendering but its text label is not visible — update the button's text colour or background so the label is clearly legible against its background, consistent with the navy/gold theme defined in tailwind.config.js.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1",
-          "msg-3"
-        ],
-        "quotes": [
-          "the book now button on title card of organisers on find organisers page the text is not visible",
-          "colour contrast issue- the button is there just the text isn't visible"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The 'Book Now' button text is clearly visible on the OrganizerCard title card.",
-        "The button text colour has sufficient contrast against the button background colour (WCAG AA minimum).",
-        "The fix is consistent with the navy/gold theme tokens defined in the project."
+        "The organiser dashboard renders the booking requests section as the last section on the page.",
+        "The events section and portfolio image upload section appear above the booking requests section.",
+        "Profile view/edit remains at the top of the dashboard.",
+        "No other dashboard functionality or styling is changed."
       ]
     }
   ],
-  "constraints": [
-    "Do not alter immutable frontend paths (useInternetIdentity, useActor, main.tsx, components/ui).",
-    "All Motoko logic must remain in backend/main.mo as a single actor.",
-    "Real-time updates must be achieved via React Query cache invalidation, not WebSockets or polling."
-  ],
+  "constraints": [],
   "nonGoals": [
-    "Adding a separate Booking Requests page or route.",
-    "Changing the overall colour theme or design system.",
-    "Any backend schema changes."
+    "Changing any booking request functionality or logic.",
+    "Modifying the guest dashboard or any other page.",
+    "Altering the visual styling of any dashboard section."
   ],
   "imageRequirements": {
     "required": [],

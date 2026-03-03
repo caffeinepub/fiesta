@@ -1,52 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix real-time bookings, inline booking requests, and Book Now button contrast",
+  "title": "Move booking requests to bottom of organiser dashboard",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Invalidate React Query cache after successful booking to update GuestBookings page in real-time",
+      "summary": "Reorder OrganizerDashboard sections so booking requests appear last, after profile, events, and portfolio sections",
       "acceptanceCriteria": [
-        "After submitting a booking request via BookingRequestModal, the GuestBookings page reflects the new booking without a manual refresh.",
-        "The bookings query cache is invalidated or refetched on successful booking mutation."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/booking/BookingRequestModal.tsx",
-          "operation": "modify",
-          "description": "After the successful booking mutation in BookingRequestModal, add a call to queryClient.invalidateQueries({ queryKey: ['guestBookings'] }) to force the GuestBookings page to refetch the updated bookings list. This ensures the new booking appears immediately without requiring a manual page refresh."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Display organizer's incoming booking requests inline within OrganizerDashboard using OrganizerBookingList",
-      "acceptanceCriteria": [
-        "OrganizerDashboard contains a visible section showing the organiser's booking requests inline.",
-        "The booking requests section uses OrganizerBookingList or OrganizerBookingCard components.",
-        "No navigation to a separate page is required to view booking requests."
+        "The organiser dashboard renders the booking requests section as the last section on the page.",
+        "The events section and portfolio image upload section appear above the booking requests section.",
+        "Profile view/edit remains at the top of the dashboard.",
+        "No other dashboard functionality or styling is changed."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/OrganizerDashboard.tsx",
           "operation": "modify",
-          "description": "Add a new section within OrganizerDashboard that displays the organizer's incoming booking requests inline. Import and render the OrganizerBookingList component within an expandable or always-visible panel (e.g., using shadcn/ui Collapsible or Card). Fetch the organizer's bookings using the useGetOrganizerBookings hook with the current user's principal. Display the booking requests section after the profile and portfolio sections so users can view and manage requests directly in the dashboard without navigating to a separate page."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Fix Book Now button text visibility on OrganizerCard by updating text color for sufficient contrast",
-      "acceptanceCriteria": [
-        "The 'Book Now' button text is clearly visible on the OrganizerCard title card.",
-        "The button text colour has sufficient contrast against the button background colour (WCAG AA minimum).",
-        "The fix is consistent with the navy/gold theme tokens defined in the project."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/organizer/OrganizerCard.tsx",
-          "operation": "modify",
-          "description": "Update the Book Now button's text color to ensure sufficient contrast against its background. If the button uses a navy or dark background, set the text color to white or a light gold token. If the button uses a gold or light background, set the text color to navy-900 or navy-950. Ensure the color combination meets WCAG AA contrast requirements (minimum 4.5:1 for normal text) and aligns with the navy/gold theme defined in frontend/tailwind.config.js. Review the current button styling and apply the appropriate Tailwind text color class (e.g., text-white, text-navy-900, or text-gold-50)."
+          "description": "Reorder the JSX rendering in the OrganizerDashboard component so that the booking requests section (OrganizerBookingList) is rendered after both the EventPhotoUpload section and the PortfolioUpload section. The final order from top to bottom should be: (1) OrganizerProfileView/OrganizerProfileForm, (2) EventPhotoUpload, (3) PortfolioUpload, (4) OrganizerBookingList. Ensure all conditional rendering logic and lazy loading behavior remains unchanged."
         }
       ]
     }

@@ -1,43 +1,32 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Event organiser booking platform with an Organiser Dashboard, Find Organisers page, and Bookings page. Multiple UI and functional issues being fixed.",
-  "architectural_notes": [],
-  "known_issues": [
-    "Bookings page does not update in real-time after booking an organiser — needs live/real-time sync",
-    "View Booking Requests should display inline within the Organiser Dashboard (not a separate page)",
-    "Book Now button on Find Organisers title card has a colour contrast issue — button exists but text is not visible"
+  "summary": "Project involves an event management platform with an organiser dashboard featuring booking requests, events, and portfolio image upload sections.",
+  "architectural_notes": [
+    "Organiser dashboard section order: Events → Portfolio Image Upload → Booking Requests"
   ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-on-the-guestbookings-page-after-a-guest-successfully-books-an-organiser-the-bookings-list-must-update-in-real-time-without-requiring-a-manual-page-refresh-invalidate-or-refetch-the-relevant-react-query-cache-entries-immediately-after-a-successful-booking-mutation",
-      "title": "On the GuestBookings page, after a guest successfully books an organiser, the bookings list must update in real-time without requiring a manual page refresh. Invalidate or refetch the relevant React Query cache entries immediately after a successful booking mutation.",
+      "id": "feature-in-the-organizerdashboard-page-reorder-the-dashboard-sections-so-that-the-booking-requests-section-appears-after-below-both-the-events-section-and-the-portfolio-image-upload-section-the-final-order-from-top-to-bottom-should-be-1-profile-view-edit-2-events-3-portfolio-image-upload-4-booking-requests",
+      "title": "In the OrganizerDashboard page, reorder the dashboard sections so that the booking requests section appears after (below) both the events section and the portfolio image upload section. The final order from top to bottom should be: (1) profile view/edit, (2) events, (3) portfolio image upload, (4) booking requests.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-on-the-organizerdashboard-page-add-an-inline-section-e-g-expandable-panel-or-embedded-list-that-displays-the-organiser-s-incoming-booking-requests-using-organizerbookinglist-the-requests-must-be-visible-directly-within-the-dashboard-without-navigating-to-a-separate-page",
-      "title": "On the OrganizerDashboard page, add an inline section (e.g. expandable panel or embedded list) that displays the organiser's incoming booking requests using OrganizerBookingList. The requests must be visible directly within the dashboard without navigating to a separate page.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-colour-contrast-on-the-book-now-button-displayed-on-the-organizercard-title-card-in-the-guestorganizerbrowsing-find-organisers-page-the-button-element-is-rendering-but-its-text-label-is-not-visible-update-the-button-s-text-colour-or-background-so-the-label-is-clearly-legible-against-its-background-consistent-with-the-navy-gold-theme-defined-in-tailwind-config-js",
-      "title": "Fix the colour contrast on the 'Book Now' button displayed on the OrganizerCard title card in the GuestOrganizerBrowsing (Find Organisers) page. The button element is rendering but its text label is not visible — update the button's text colour or background so the label is clearly legible against its background, consistent with the navy/gold theme defined in tailwind.config.js.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Move booking requests section to the bottom of the organiser dashboard, below events and portfolio image upload",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
   "gameProjectType": "none",
-  "projectName": "FIESTA",
+  "projectName": "Move booking requests to bottom of organiser dashboard",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

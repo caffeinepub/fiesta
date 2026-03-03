@@ -12,7 +12,7 @@ import {
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { useGetGuestEvents, useCreateBooking } from '../../hooks/useQueries';
+import { useGetGuestEvents, useRequestBooking } from '../../hooks/useQueries';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
@@ -39,7 +39,7 @@ export default function BookingRequestModal({
   const { data: events = [], isLoading: eventsLoading } = useGetGuestEvents(
     identity?.getPrincipal().toString()
   );
-  const createBookingMutation = useCreateBooking();
+  const requestBookingMutation = useRequestBooking();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +47,7 @@ export default function BookingRequestModal({
     if (!selectedEventId) return;
 
     try {
-      await createBookingMutation.mutateAsync({
+      await requestBookingMutation.mutateAsync({
         eventId: BigInt(selectedEventId),
         organizerId: organizerId,
       });
@@ -69,10 +69,10 @@ export default function BookingRequestModal({
   };
 
   const handleClose = () => {
-    if (!createBookingMutation.isPending) {
+    if (!requestBookingMutation.isPending) {
       setSuccessMessage('');
       setSelectedEventId('');
-      createBookingMutation.reset();
+      requestBookingMutation.reset();
       onOpenChange(false);
     }
   };
@@ -130,11 +130,11 @@ export default function BookingRequestModal({
               </div>
             )}
 
-            {createBookingMutation.isError && (
+            {requestBookingMutation.isError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  {createBookingMutation.error?.message ||
+                  {requestBookingMutation.error?.message ||
                     'Failed to create booking. Please try again.'}
                 </AlertDescription>
               </Alert>
@@ -145,7 +145,7 @@ export default function BookingRequestModal({
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                disabled={createBookingMutation.isPending}
+                disabled={requestBookingMutation.isPending}
               >
                 Cancel
               </Button>
@@ -163,10 +163,10 @@ export default function BookingRequestModal({
               ) : (
                 <Button
                   type="submit"
-                  disabled={!selectedEventId || createBookingMutation.isPending}
+                  disabled={!selectedEventId || requestBookingMutation.isPending}
                   className="bg-navy-900 hover:bg-navy-800 text-white"
                 >
-                  {createBookingMutation.isPending
+                  {requestBookingMutation.isPending
                     ? 'Sending Request...'
                     : 'Send Booking Request'}
                 </Button>

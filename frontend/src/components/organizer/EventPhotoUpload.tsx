@@ -45,6 +45,7 @@ export default function EventPhotoUpload({ photos, organizerId }: EventPhotoUplo
     try {
       await uploadMutation.mutateAsync({
         file,
+        organizerId,
         onProgress: (pct) => setUploadProgress(pct),
       });
     } finally {

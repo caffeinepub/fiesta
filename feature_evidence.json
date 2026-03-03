@@ -2,28 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-on-the-guestbookings-page-after-a-guest-successfully-books-an-organiser-the-bookings-list-must-update-in-real-time-without-requiring-a-manual-page-refresh-invalidate-or-refetch-the-relevant-react-query-cache-entries-immediately-after-a-successful-booking-mutation",
-      "featureTitle": "On the GuestBookings page, after a guest successfully books an organiser, the bookings list must update in real-time without requiring a manual page refresh. Invalidate or refetch the relevant React Query cache entries immediately after a successful booking mutation.",
-      "files": [
-        "frontend/src/components/booking/BookingRequestModal.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-on-the-organizerdashboard-page-add-an-inline-section-e-g-expandable-panel-or-embedded-list-that-displays-the-organiser-s-incoming-booking-requests-using-organizerbookinglist-the-requests-must-be-visible-directly-within-the-dashboard-without-navigating-to-a-separate-page",
-      "featureTitle": "On the OrganizerDashboard page, add an inline section (e.g. expandable panel or embedded list) that displays the organiser's incoming booking requests using OrganizerBookingList. The requests must be visible directly within the dashboard without navigating to a separate page.",
+      "featureId": "feature-in-the-organizerdashboard-page-reorder-the-dashboard-sections-so-that-the-booking-requests-section-appears-after-below-both-the-events-section-and-the-portfolio-image-upload-section-the-final-order-from-top-to-bottom-should-be-1-profile-view-edit-2-events-3-portfolio-image-upload-4-booking-requests",
+      "featureTitle": "In the OrganizerDashboard page, reorder the dashboard sections so that the booking requests section appears after (below) both the events section and the portfolio image upload section. The final order from top to bottom should be: (1) profile view/edit, (2) events, (3) portfolio image upload, (4) booking requests.",
       "files": [
         "frontend/src/pages/OrganizerDashboard.tsx"
       ],
@@ -37,27 +17,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-fix-the-colour-contrast-on-the-book-now-button-displayed-on-the-organizercard-title-card-in-the-guestorganizerbrowsing-find-organisers-page-the-button-element-is-rendering-but-its-text-label-is-not-visible-update-the-button-s-text-colour-or-background-so-the-label-is-clearly-legible-against-its-background-consistent-with-the-navy-gold-theme-defined-in-tailwind-config-js",
-      "featureTitle": "Fix the colour contrast on the 'Book Now' button displayed on the OrganizerCard title card in the GuestOrganizerBrowsing (Find Organisers) page. The button element is rendering but its text label is not visible — update the button's text colour or background so the label is clearly legible against its background, consistent with the navy/gold theme defined in tailwind.config.js.",
-      "files": [
-        "frontend/src/components/organizer/OrganizerCard.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
+        "REQ-1"
       ],
       "confidence": "high"
     }

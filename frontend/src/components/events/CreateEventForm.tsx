@@ -3,6 +3,7 @@ import { useCreateEvent } from '../../hooks/useQueries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EventType, LocationType, EventStyle } from '../../backend';
 import { useActor } from '../../hooks/useActor';
@@ -14,6 +15,7 @@ export default function CreateEventForm() {
   const [eventStyle, setEventStyle] = useState<EventStyle>(EventStyle.family);
   const [contactNumber, setContactNumber] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
@@ -76,12 +78,15 @@ export default function CreateEventForm() {
         eventStyle,
         contact_number: contactNumber,
         date: dateTimestamp,
+        description,
+        image: null,
       });
 
       // Reset form
       setNumberOfGuests('');
       setContactNumber('');
       setEventDate('');
+      setDescription('');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
@@ -168,6 +173,17 @@ export default function CreateEventForm() {
           value={contactNumber}
           onChange={(e) => setContactNumber(e.target.value)}
           placeholder="Enter your contact number"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description <span className="text-gray-400 font-normal">(optional)</span></Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Describe your event..."
+          rows={3}
         />
       </div>
 

@@ -1,11 +1,9 @@
 # Specification
 
 ## Summary
-**Goal:** Fix three frontend issues: real-time booking list updates on the GuestBookings page, inline booking requests on the OrganizerDashboard, and a visible "Book Now" button on OrganizerCard.
+**Goal:** Reorder sections in the Organizer Dashboard so that booking requests appear at the bottom.
 
 **Planned changes:**
-- Invalidate or refetch the React Query bookings cache immediately after a successful booking mutation so the GuestBookings page updates in real-time without a manual refresh.
-- Add an inline section to OrganizerDashboard that displays the organiser's incoming booking requests using OrganizerBookingList/OrganizerBookingCard components, without navigating to a separate page.
-- Fix the colour contrast on the "Book Now" button in OrganizerCard so the button text is clearly visible, consistent with the navy/gold theme.
+- Reorder the OrganizerDashboard sections so the final top-to-bottom order is: (1) profile view/edit, (2) events, (3) portfolio image upload, (4) booking requests.
 
-**User-visible outcome:** Guests see their new booking appear instantly after booking an organiser; organisers can view incoming booking requests directly within their dashboard; the "Book Now" button label is clearly legible on the Find Organisers page.
+**User-visible outcome:** Organizers will see the booking requests section at the bottom of their dashboard, below the events and portfolio image upload sections.

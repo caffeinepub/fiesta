@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
 import type {
@@ -10,6 +10,7 @@ import type {
   Review,
   EventPhoto,
   PortfolioImage,
+  PaginatedBookings,
 } from '../backend';
 import { EventType, LocationType, EventStyle } from '../backend';
 import { ExternalBlob } from '../backend';
@@ -146,8 +147,9 @@ export function useGetOrganizerPortfolioImages(organizerId?: string) {
 /**
  * Fetches portfolio images for the caller organizer from the dashboard endpoint.
  * Returns empty array if no organizer profile exists.
+ * Only fetches when `enabled` prop is true (deferred loading).
  */
-export function useGetCallerPortfolioImages() {
+export function useGetCallerPortfolioImages(enabled = true) {
   const { actor, isFetching: actorFetching } = useActor();
   const query = useQuery<PortfolioImage[]>({
     queryKey: ['callerPortfolioImages'],
@@ -159,12 +161,12 @@ export function useGetCallerPortfolioImages() {
         return [];
       }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && enabled,
     retry: false,
   });
   return {
     ...query,
-    isLoading: actorFetching || query.isLoading,
+    isLoading: (actorFetching || query.isLoading) && enabled,
     isFetched: !!actor && query.isFetched,
   };
 }
@@ -216,8 +218,9 @@ export function useDeletePortfolioImage() {
 /**
  * Fetches event photos for the caller organizer from the dashboard endpoint.
  * Returns empty array if no organizer profile exists (catches trap).
+ * Only fetches when `enabled` prop is true (deferred loading).
  */
-export function useGetEventPhotos() {
+export function useGetEventPhotos(enabled = true) {
   const { actor, isFetching: actorFetching } = useActor();
   const query = useQuery<EventPhoto[]>({
     queryKey: ['eventPhotos'],
@@ -230,12 +233,12 @@ export function useGetEventPhotos() {
         return [];
       }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && enabled,
     retry: false,
   });
   return {
     ...query,
-    isLoading: actorFetching || query.isLoading,
+    isLoading: (actorFetching || query.isLoading) && enabled,
     isFetched: !!actor && query.isFetched,
   };
 }
@@ -247,7 +250,6 @@ export function useGetEventPhotos() {
  */
 export function useGetOrganizerEventPhotos(organizerId?: string) {
   const { actor, isFetching } = useActor();
-
   return useQuery<EventPhoto[]>({
     queryKey: ['organizerEventPhotos', organizerId],
     queryFn: async () => {
@@ -259,6 +261,7 @@ export function useGetOrganizerEventPhotos(organizerId?: string) {
       }
     },
     enabled: !!actor && !isFetching && !!organizerId,
+    retry: false,
   });
 }
 
@@ -271,20 +274,18 @@ export function useUploadEventPhoto() {
       onProgress,
     }: {
       file: File;
+      organizerId: string;
       onProgress?: (pct: number) => void;
     }) => {
       if (!actor) throw new Error('Actor not available');
       const arrayBuffer = await file.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
       let blob = ExternalBlob.fromBytes(bytes);
-      if (onProgress) {
-        blob = blob.withUploadProgress(onProgress);
-      }
+      if (onProgress) blob = blob.withUploadProgress(onProgress);
       return actor.uploadEventPhoto(blob, file.type, file.name);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
-      queryClient.invalidateQueries({ queryKey: ['organizerEventPhotos'] });
     },
   });
 }
@@ -299,12 +300,11 @@ export function useDeleteEventPhoto() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eventPhotos'] });
-      queryClient.invalidateQueries({ queryKey: ['organizerEventPhotos'] });
     },
   });
 }
 
-// ─── Events ──────────────────────────────────────────────────────────────────
+// ─── Events ───────────────────────────────────────────────────────────────────
 
 export function useGetGuestEvents(guestId?: string) {
   const { actor, isFetching } = useActor();
@@ -318,15 +318,28 @@ export function useGetGuestEvents(guestId?: string) {
   });
 }
 
+export function useGetAllEventsAdmin() {
+  const { actor, isFetching } = useActor();
+  return useQuery<Event[]>({
+    queryKey: ['allEvents'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllEvents();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useGetEvent(eventId?: bigint) {
   const { actor, isFetching } = useActor();
   return useQuery<Event>({
     queryKey: ['event', eventId?.toString()],
     queryFn: async () => {
-      if (!actor || eventId === undefined) throw new Error('No event ID');
+      if (!actor || eventId === undefined) throw new Error('Actor or eventId not available');
       return actor.getEvent(eventId);
     },
     enabled: !!actor && !isFetching && eventId !== undefined,
+    retry: false,
   });
 }
 
@@ -341,6 +354,8 @@ export function useCreateEvent() {
       eventStyle: EventStyle;
       contact_number: string;
       date: bigint;
+      description: string;
+      image?: ExternalBlob | null;
     }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.createEvent(
@@ -350,11 +365,85 @@ export function useCreateEvent() {
         params.eventStyle,
         params.contact_number,
         params.date,
+        params.description,
+        params.image ?? null,
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guestEvents'] });
     },
+  });
+}
+
+export function useUpdateEvent() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      eventId: bigint;
+      eventType: EventType;
+      locationType: LocationType;
+      numberOfGuests: bigint;
+      eventStyle: EventStyle;
+      contact_number: string;
+      date: bigint;
+      description: string;
+      image?: ExternalBlob | null;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateEvent(
+        params.eventId,
+        params.eventType,
+        params.locationType,
+        params.numberOfGuests,
+        params.eventStyle,
+        params.contact_number,
+        params.date,
+        params.description,
+        params.image ?? null,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guestEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['event'] });
+    },
+  });
+}
+
+export function useDeleteEvent() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (eventId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.deleteEvent(eventId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guestEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['event'] });
+      queryClient.invalidateQueries({ queryKey: ['eventBookings'] });
+    },
+  });
+}
+
+/**
+ * Fetches bookings for a specific event to determine lock status.
+ * Used to check if any booking has status 'approved' which locks the event.
+ */
+export function useGetEventBookings(eventId?: bigint) {
+  const { actor, isFetching } = useActor();
+  return useQuery<Booking[]>({
+    queryKey: ['eventBookings', eventId?.toString()],
+    queryFn: async () => {
+      if (!actor || eventId === undefined) return [];
+      try {
+        return await actor.getEventBookings(eventId);
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && eventId !== undefined,
+    retry: false,
   });
 }
 
@@ -372,6 +461,24 @@ export function useGetGuestBookings(guestId?: string) {
   });
 }
 
+/**
+ * Fetches all bookings for the currently authenticated caller (customer).
+ * Uses getBookingsByGuest() which automatically uses the caller's principal.
+ * No parameters needed — identity is resolved server-side.
+ */
+export function useGetBookingsByGuest() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  return useQuery<Booking[]>({
+    queryKey: ['bookingsByGuest', identity?.getPrincipal().toString()],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getBookingsByGuest();
+    },
+    enabled: !!actor && !isFetching && !!identity,
+  });
+}
+
 export function useGetOrganizerBookings(organizerId?: string) {
   const { actor, isFetching } = useActor();
   return useQuery<Booking[]>({
@@ -384,16 +491,50 @@ export function useGetOrganizerBookings(organizerId?: string) {
   });
 }
 
-export function useCreateBooking() {
+/**
+ * Fetches paginated bookings for an organizer.
+ * pageNumber is 0-indexed. Uses placeholderData to keep previous page visible while loading.
+ */
+export function useGetOrganizerBookingsPaginated(
+  organizerId?: string,
+  pageNumber = 0,
+  pageSize = 5,
+) {
+  const { actor, isFetching } = useActor();
+  return useQuery<PaginatedBookings>({
+    queryKey: ['organizerBookingsPaginated', organizerId, pageNumber, pageSize],
+    queryFn: async () => {
+      if (!actor || !organizerId) return { bookings: [], totalCount: BigInt(0) };
+      return actor.getOrganizerBookingsPaginated(
+        Principal.fromText(organizerId),
+        BigInt(pageNumber),
+        BigInt(pageSize),
+      );
+    },
+    enabled: !!actor && !isFetching && !!organizerId,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useRequestBooking() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ eventId, organizerId }: { eventId: bigint; organizerId: string }) => {
+    mutationFn: async ({
+      eventId,
+      organizerId,
+    }: {
+      eventId: bigint;
+      organizerId: string;
+    }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createBooking(eventId, Principal.fromText(organizerId));
+      return actor.requestBooking(eventId, Principal.fromText(organizerId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guestBookings'] });
+      queryClient.invalidateQueries({ queryKey: ['bookingsByGuest'] });
+      queryClient.invalidateQueries({ queryKey: ['organizerBookings'] });
+      queryClient.invalidateQueries({ queryKey: ['organizerBookingsPaginated'] });
     },
   });
 }
@@ -402,12 +543,22 @@ export function useUpdateBookingStatus() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ bookingId, status }: { bookingId: bigint; status: BookingStatus }) => {
+    mutationFn: async ({
+      bookingId,
+      status,
+    }: {
+      bookingId: bigint;
+      status: BookingStatus;
+    }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateBookingStatus(bookingId, status);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizerBookings'] });
+      queryClient.invalidateQueries({ queryKey: ['organizerBookingsPaginated'] });
+      queryClient.invalidateQueries({ queryKey: ['guestBookings'] });
+      queryClient.invalidateQueries({ queryKey: ['bookingsByGuest'] });
+      queryClient.invalidateQueries({ queryKey: ['eventBookings'] });
     },
   });
 }
@@ -452,10 +603,22 @@ export function useSubmitReview() {
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
+export function useGetAllBookingsAdmin() {
+  const { actor, isFetching } = useActor();
+  return useQuery<Booking[]>({
+    queryKey: ['allBookings'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllBookings();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useGetAllOrganizersAdmin() {
   const { actor, isFetching } = useActor();
   return useQuery<OrganizerProfile[]>({
-    queryKey: ['allOrganizersAdmin'],
+    queryKey: ['allOrganizers'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllOrganizers();
@@ -464,26 +627,34 @@ export function useGetAllOrganizersAdmin() {
   });
 }
 
-export function useGetAllEventsAdmin() {
+export function useFilterOrganizers(params?: {
+  eventType: EventType;
+  locationType: LocationType;
+  numberOfGuests: bigint;
+  eventStyle: EventStyle;
+}) {
   const { actor, isFetching } = useActor();
-  return useQuery<Event[]>({
-    queryKey: ['allEventsAdmin'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllEvents();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
+  // Serialize params to avoid BigInt in query key
+  const queryKeyParams = params
+    ? {
+        eventType: params.eventType,
+        locationType: params.locationType,
+        numberOfGuests: params.numberOfGuests.toString(),
+        eventStyle: params.eventStyle,
+      }
+    : null;
 
-export function useGetAllBookingsAdmin() {
-  const { actor, isFetching } = useActor();
-  return useQuery<Booking[]>({
-    queryKey: ['allBookingsAdmin'],
+  return useQuery<OrganizerProfile[]>({
+    queryKey: ['filteredOrganizers', queryKeyParams],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllBookings();
+      if (!actor || !params) return [];
+      return actor.filterOrganizers(
+        params.eventType,
+        params.locationType,
+        params.numberOfGuests,
+        params.eventStyle,
+      );
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && !!params,
   });
 }

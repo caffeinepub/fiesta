@@ -41,6 +41,7 @@ export const EventStyle = IDL.Variant({
   'family' : IDL.Null,
 });
 export const Time = IDL.Int;
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const PortfolioImage = IDL.Record({
   'filename' : IDL.Text,
   'uploaded_at' : Time,
@@ -81,7 +82,9 @@ export const Event = IDL.Record({
   'owner' : IDL.Principal,
   'date' : Time,
   'createdAt' : Time,
+  'description' : IDL.Text,
   'contact_number' : IDL.Text,
+  'image' : IDL.Opt(ExternalBlob),
   'locationType' : LocationType,
   'numberOfGuests' : IDL.Nat,
   'eventType' : EventType,
@@ -101,7 +104,6 @@ export const UserProfile = IDL.Record({
   'fullName' : IDL.Text,
   'email' : IDL.Text,
 });
-export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const EventPhoto = IDL.Record({
   'id' : IDL.Nat,
   'contentType' : IDL.Text,
@@ -109,6 +111,10 @@ export const EventPhoto = IDL.Record({
   'blob' : ExternalBlob,
   'filename' : IDL.Text,
   'uploadedAt' : Time,
+});
+export const PaginatedBookings = IDL.Record({
+  'bookings' : IDL.Vec(Booking),
+  'totalCount' : IDL.Nat,
 });
 
 export const idlService = IDL.Service({
@@ -143,10 +149,20 @@ export const idlService = IDL.Service({
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createBooking' : IDL.Func([IDL.Nat, IDL.Principal], [IDL.Nat], []),
   'createEvent' : IDL.Func(
-      [EventType, LocationType, IDL.Nat, EventStyle, IDL.Text, Time],
+      [
+        EventType,
+        LocationType,
+        IDL.Nat,
+        EventStyle,
+        IDL.Text,
+        Time,
+        IDL.Text,
+        IDL.Opt(ExternalBlob),
+      ],
       [IDL.Nat],
       [],
     ),
+  'deleteEvent' : IDL.Func([IDL.Nat], [], []),
   'deleteEventPhoto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'deletePortfolioImage' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'filterOrganizers' : IDL.Func(
@@ -159,6 +175,7 @@ export const idlService = IDL.Service({
   'getAllOrganizers' : IDL.Func([], [IDL.Vec(OrganizerProfile)], ['query']),
   'getAllReviews' : IDL.Func([], [IDL.Vec(Review)], ['query']),
   'getBooking' : IDL.Func([IDL.Nat], [Booking], ['query']),
+  'getBookingsByGuest' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getBookingsByStatus' : IDL.Func(
       [BookingStatus],
       [IDL.Vec(Booking)],
@@ -182,11 +199,18 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getGuestBookings' : IDL.Func([IDL.Principal], [IDL.Vec(Booking)], ['query']),
+  'getGuestBookingsForCaller' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getGuestEvents' : IDL.Func([IDL.Principal], [IDL.Vec(Event)], ['query']),
   'getOrganizer' : IDL.Func([IDL.Principal], [OrganizerProfile], ['query']),
   'getOrganizerBookings' : IDL.Func(
       [IDL.Principal],
       [IDL.Vec(Booking)],
+      ['query'],
+    ),
+  'getOrganizerBookingsForCaller' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+  'getOrganizerBookingsPaginated' : IDL.Func(
+      [IDL.Principal, IDL.Nat, IDL.Nat],
+      [PaginatedBookings],
       ['query'],
     ),
   'getOrganizerPortfolioImages' : IDL.Func(
@@ -230,6 +254,21 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+  'updateEvent' : IDL.Func(
+      [
+        IDL.Nat,
+        EventType,
+        LocationType,
+        IDL.Nat,
+        EventStyle,
+        IDL.Text,
+        Time,
+        IDL.Text,
+        IDL.Opt(ExternalBlob),
+      ],
+      [],
+      [],
+    ),
   'uploadEventPhoto' : IDL.Func(
       [ExternalBlob, IDL.Text, IDL.Text],
       [IDL.Nat],
@@ -273,6 +312,7 @@ export const idlFactory = ({ IDL }) => {
     'family' : IDL.Null,
   });
   const Time = IDL.Int;
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const PortfolioImage = IDL.Record({
     'filename' : IDL.Text,
     'uploaded_at' : Time,
@@ -313,7 +353,9 @@ export const idlFactory = ({ IDL }) => {
     'owner' : IDL.Principal,
     'date' : Time,
     'createdAt' : Time,
+    'description' : IDL.Text,
     'contact_number' : IDL.Text,
+    'image' : IDL.Opt(ExternalBlob),
     'locationType' : LocationType,
     'numberOfGuests' : IDL.Nat,
     'eventType' : EventType,
@@ -333,7 +375,6 @@ export const idlFactory = ({ IDL }) => {
     'fullName' : IDL.Text,
     'email' : IDL.Text,
   });
-  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const EventPhoto = IDL.Record({
     'id' : IDL.Nat,
     'contentType' : IDL.Text,
@@ -341,6 +382,10 @@ export const idlFactory = ({ IDL }) => {
     'blob' : ExternalBlob,
     'filename' : IDL.Text,
     'uploadedAt' : Time,
+  });
+  const PaginatedBookings = IDL.Record({
+    'bookings' : IDL.Vec(Booking),
+    'totalCount' : IDL.Nat,
   });
   
   return IDL.Service({
@@ -375,10 +420,20 @@ export const idlFactory = ({ IDL }) => {
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createBooking' : IDL.Func([IDL.Nat, IDL.Principal], [IDL.Nat], []),
     'createEvent' : IDL.Func(
-        [EventType, LocationType, IDL.Nat, EventStyle, IDL.Text, Time],
+        [
+          EventType,
+          LocationType,
+          IDL.Nat,
+          EventStyle,
+          IDL.Text,
+          Time,
+          IDL.Text,
+          IDL.Opt(ExternalBlob),
+        ],
         [IDL.Nat],
         [],
       ),
+    'deleteEvent' : IDL.Func([IDL.Nat], [], []),
     'deleteEventPhoto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'deletePortfolioImage' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'filterOrganizers' : IDL.Func(
@@ -391,6 +446,7 @@ export const idlFactory = ({ IDL }) => {
     'getAllOrganizers' : IDL.Func([], [IDL.Vec(OrganizerProfile)], ['query']),
     'getAllReviews' : IDL.Func([], [IDL.Vec(Review)], ['query']),
     'getBooking' : IDL.Func([IDL.Nat], [Booking], ['query']),
+    'getBookingsByGuest' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getBookingsByStatus' : IDL.Func(
         [BookingStatus],
         [IDL.Vec(Booking)],
@@ -418,11 +474,22 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Booking)],
         ['query'],
       ),
+    'getGuestBookingsForCaller' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getGuestEvents' : IDL.Func([IDL.Principal], [IDL.Vec(Event)], ['query']),
     'getOrganizer' : IDL.Func([IDL.Principal], [OrganizerProfile], ['query']),
     'getOrganizerBookings' : IDL.Func(
         [IDL.Principal],
         [IDL.Vec(Booking)],
+        ['query'],
+      ),
+    'getOrganizerBookingsForCaller' : IDL.Func(
+        [],
+        [IDL.Vec(Booking)],
+        ['query'],
+      ),
+    'getOrganizerBookingsPaginated' : IDL.Func(
+        [IDL.Principal, IDL.Nat, IDL.Nat],
+        [PaginatedBookings],
         ['query'],
       ),
     'getOrganizerPortfolioImages' : IDL.Func(
@@ -470,6 +537,21 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+    'updateEvent' : IDL.Func(
+        [
+          IDL.Nat,
+          EventType,
+          LocationType,
+          IDL.Nat,
+          EventStyle,
+          IDL.Text,
+          Time,
+          IDL.Text,
+          IDL.Opt(ExternalBlob),
+        ],
+        [],
+        [],
+      ),
     'uploadEventPhoto' : IDL.Func(
         [ExternalBlob, IDL.Text, IDL.Text],
         [IDL.Nat],
